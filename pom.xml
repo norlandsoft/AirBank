@@ -33,6 +33,8 @@
         <maven.compiler.target>21</maven.compiler.target>
         <maven.test.skip>true</maven.test.skip>
 
+        <maven.compiler.plugin>3.13.0</maven.compiler.plugin>
+        
         <!--SpringBoot 3 & Spring 6-->
         <springboot.version>3.3.4</springboot.version>
         <spring.version>6.1.5</spring.version>
@@ -55,8 +57,34 @@
     </parent>
 
     <modules>
+        <module>air-bank-common</module>
         <module>air-bank-core</module>
         <module>air-bank-ecif</module>
         <module>air-bank-online</module>
     </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.38</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin}</version>
+                <configuration>
+                <compilerArgs>
+                    <!-- 使用下面的选项来隐藏警告 -->
+                    <arg>-Xlint:-options</arg>
+                </compilerArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
