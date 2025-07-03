@@ -36,5 +36,11 @@
       <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
       <version>2023.0.3.3</version>
     </dependency>
+
+    <dependency>
+      <groupId>com.norlandsoft</groupId>
+      <artifactId>air-bank-common</artifactId>
+      <version>1.0.0</version>
+    </dependency>
   </dependencies>
 </project>
