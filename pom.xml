@@ -1,0 +1,62 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.norlandsoft</groupId>
+    <artifactId>air-bank</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.test.skip>true</maven.test.skip>
+
+        <!--SpringBoot 3 & Spring 6-->
+        <springboot.version>3.3.4</springboot.version>
+        <spring.version>6.1.5</spring.version>
+
+        <!--数据库-->
+        <postgres.version>42.7.5</postgres.version>
+        <mybatis.version>3.5.19</mybatis.version>
+        <mybatis.spring>3.0.4</mybatis.spring>
+
+        <!--Log-->
+        <slf4j.version>2.0.17</slf4j.version>
+        <log4j.version>2.24.3</log4j.version>
+    </properties>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.4</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <modules>
+        <module>air-bank-core</module>
+        <module>air-bank-ecif</module>
+        <module>air-bank-online</module>
+    </modules>
+</project>

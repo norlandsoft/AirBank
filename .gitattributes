@@ -1,0 +1,46 @@
+# 设置所有文本文件的行尾格式
+* text=auto
+
+# 明确指定某些文件类型的行尾格式
+*.java text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.less text eol=lf
+*.scss text eol=lf
+*.sass text eol=lf
+*.vue text eol=lf
+*.svg text eol=lf
+*.json text eol=lf
+*.xml text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+*.py text eol=lf
+*.properties text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.conf text eol=lf
+Dockerfile text eol=lf
+
+
+# 二进制文件不需要转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.bmp binary
+*.gif binary
+*.ico binary
+*.tiff binary
+*.woff binary
+*.woff2 binary
+*.webp binary
+*.jar binary
+*.class binary
+*.so binary
+*.dll binary
+*.exe binary

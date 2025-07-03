@@ -1,0 +1,17 @@
+server:
+  port: 7702
+spring:
+  application:
+    name: air-bank-ecif
+  config:
+    import:
+      - nacos:${spring.application.name}.properties?group=DEFAULT_GROUP
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: public
+        group: DEFAULT_GROUP
+        enabled: true
