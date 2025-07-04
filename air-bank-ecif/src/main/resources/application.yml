@@ -2,7 +2,7 @@ server:
   port: 7702
 spring:
   application:
-    name: air-bank-ecif
+    name: bank-ecif
   jackson:
     default-property-inclusion: non_null
   config:

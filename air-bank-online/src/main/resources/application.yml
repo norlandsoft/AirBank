@@ -2,7 +2,7 @@ server:
   port: 7701
 spring:
   application:
-    name: air-bank-online
+    name: bank-online
   jackson:
     default-property-inclusion: non_null
   config:

@@ -2,7 +2,9 @@ server:
   port: 7700
 spring:
   application:
-    name: air-bank-core
+    name: bank-core
+  jackson:
+    default-property-inclusion: non_null
   config:
     import:
       - nacos:${spring.application.name}.properties?group=DEFAULT_GROUP
