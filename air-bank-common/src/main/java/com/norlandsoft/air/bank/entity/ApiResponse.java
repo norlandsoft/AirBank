@@ -17,4 +17,11 @@ public class ApiResponse {
     resp.setSuccess(true);
     return resp;
   }
+
+  public static ApiResponse success(Object data) {
+    ApiResponse resp = new ApiResponse();
+    resp.setSuccess(true);
+    resp.setData(data);
+    return resp;
+  }
 }
