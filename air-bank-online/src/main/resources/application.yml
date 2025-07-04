@@ -3,6 +3,8 @@ server:
 spring:
   application:
     name: air-bank-online
+  jackson:
+    default-property-inclusion: non_null
   config:
     import:
       - nacos:${spring.application.name}.properties?group=DEFAULT_GROUP

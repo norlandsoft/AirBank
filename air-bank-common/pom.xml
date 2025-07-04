@@ -12,5 +12,14 @@
 
   <artifactId>air-bank-common</artifactId>
   <packaging>jar</packaging>
+
+  <dependencies>
+    <!-- Lombok 注解 -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
   
 </project>

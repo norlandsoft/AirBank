@@ -7,4 +7,11 @@ import lombok.Data;
  */
 @Data
 public class Customer {
+  private String id;
+  private String name;
+  private String gender; // M - 男， F - 女
+  private String phone;
+  private String address;
+
+  private String cnid; // 身份证号码
 }
