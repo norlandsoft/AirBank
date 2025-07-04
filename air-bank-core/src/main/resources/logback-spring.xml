@@ -3,7 +3,7 @@
 
   <!-- 设置日志变量（可被引用） -->
   <property name="LOG_PATH" value="logs"/>
-  <property name="APP_NAME" value="${spring.application.name:-bank-ecif}"/>
+  <property name="APP_NAME" value="${spring.application.name:-bank-core}"/>
 
   <!-- 日志文件输出 -->
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">

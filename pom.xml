@@ -1,88 +1,82 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version>
-        <relativePath/>
-    </parent>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.2.0</version>
+    <relativePath/>
+  </parent>
 
-    <groupId>com.norlandsoft</groupId>
-    <artifactId>AirBank</artifactId>
-    <version>1.0.0</version>
-    <packaging>pom</packaging>
+  <groupId>com.norlandsoft</groupId>
+  <artifactId>AirBank</artifactId>
+  <version>1.0.0</version>
+  <packaging>pom</packaging>
 
-    <!-- 统一依赖版本管理 -->
-    <dependencyManagement>
-        <dependencies>
-            <!-- Spring Cloud Alibaba BOM -->
-            <dependency>
-                <groupId>com.alibaba.cloud</groupId>
-                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
-                <version>2023.0.3.3</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
+  <!-- 统一依赖版本管理 -->
+  <dependencyManagement>
+    <dependencies>
+      <!-- Spring Cloud Alibaba BOM -->
+      <dependency>
+        <groupId>com.alibaba.cloud</groupId>
+        <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+        <version>2023.0.3.3</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
 
-            <!-- Spring Cloud BOM -->
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-dependencies</artifactId>
-                <version>2023.0.1</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+      <!-- Spring Cloud BOM -->
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-dependencies</artifactId>
+        <version>2023.0.1</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <maven.test.skip>true</maven.test.skip>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+    <maven.test.skip>true</maven.test.skip>
 
-        <maven.compiler.plugin>3.13.0</maven.compiler.plugin>
+    <maven.compiler.plugin>3.13.0</maven.compiler.plugin>
 
-        <!--SpringBoot 3 & Spring 6-->
-        <spring.boot.version>3.2.0</spring.boot.version>
+    <!--SpringBoot 3 & Spring 6-->
+    <spring.boot.version>3.2.0</spring.boot.version>
 
-        <!--数据库-->
-        <postgres.version>42.7.5</postgres.version>
-        <mybatis.version>3.5.19</mybatis.version>
-        <mybatis.spring>3.0.4</mybatis.spring>
-    </properties>
+    <!--数据库-->
+    <postgres.version>42.7.5</postgres.version>
+    <mybatis.version>3.5.19</mybatis.version>
+    <mybatis.spring>3.0.4</mybatis.spring>
+  </properties>
 
-    <modules>
-        <module>air-bank-common</module>
-        <module>air-bank-core</module>
-        <module>air-bank-ecif</module>
-        <module>air-bank-online</module>
-    </modules>
+  <modules>
+    <module>air-bank-common</module>
+    <module>air-bank-core</module>
+    <module>air-bank-ecif</module>
+    <module>air-bank-online</module>
+  </modules>
 
-    <build>
-        <pluginManagement>
-            <plugins>
-                <!-- Spring Boot Maven Plugin -->
-                <plugin>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>${spring.boot.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>${maven.compiler.plugin}</version>
-                    <configuration>
-                        <compilerArgs>
-                            <!-- 使用下面的选项来隐藏警告 -->
-                            <arg>-Xlint:-options</arg>
-                        </compilerArgs>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven.compiler.plugin}</version>
+          <configuration>
+            <compilerArgs>
+              <!-- 使用下面的选项来隐藏警告 -->
+              <arg>-Xlint:-options</arg>
+            </compilerArgs>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 </project>
