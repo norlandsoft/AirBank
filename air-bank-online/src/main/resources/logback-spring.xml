@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds">
+
+  <!-- 设置日志变量（可被引用） -->
+  <property name="LOG_PATH" value="logs"/>
+  <property name="APP_NAME" value="${spring.application.name:-app}"/>
+
+  <!-- 日志文件输出 -->
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${LOG_PATH}/${APP_NAME}.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_PATH}/${APP_NAME}.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>15</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- 日志级别配置 -->
+  <root level="INFO">
+    <appender-ref ref="FILE"/>
+  </root>
+
+  <!-- 指定包的日志级别 -->
+  <logger name="com.example" level="DEBUG"/>
+</configuration>

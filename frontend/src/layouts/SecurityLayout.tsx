@@ -1,14 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import {connect} from 'umi';
+import Login from '@/pages/Login';
 
 const SecurityLayout: React.FC = (props: any) => {
-  return (
-    <div>
-      <h1>SecurityLayout</h1>
-    </div>
-  )
+  return <Login />
 }
 
-export default connect(({user}) => ({
-  user
-}))(SecurityLayout);
+export default SecurityLayout;

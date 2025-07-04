@@ -1,6 +1,4 @@
 import {defineConfig} from "umi";
-import MonacoEditorWebpackPlugin from 'monaco-editor-webpack-plugin';
-import path from 'path';
 
 export default defineConfig({
   dva: {},
@@ -10,9 +8,6 @@ export default defineConfig({
     {id: 'theme', rel: 'stylesheet', type: 'text/css'},
     {rel: 'shortcut icon', href: '/favicon.svg'}
   ],
-  alias: {
-    "aird": path.resolve(__dirname, "src/components/AirDesign"),
-  },
   routes: [
     {
       path: "/",
@@ -24,18 +19,8 @@ export default defineConfig({
     }
   ],
   proxy: {
-    // 平台API
-    "/rest": {
-      target: "http://localhost:8000",
-      changeOrigin: true,
-      pathRewrite: {"^": ""},
-      'onProxyRes': function (proxyRes, req, res) {
-        proxyRes.headers['Content-Encoding'] = 'chunked';
-      }
-    },
-    // 引擎API
     "/api": {
-      target: "http://localhost:10080",
+      target: "http://localhost:7701",
       changeOrigin: true,
       pathRewrite: {"^": ""},
       'onProxyRes': function (proxyRes, req, res) {

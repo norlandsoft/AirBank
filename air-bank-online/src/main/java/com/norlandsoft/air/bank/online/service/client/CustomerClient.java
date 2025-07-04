@@ -13,4 +13,5 @@ public interface CustomerClient {
 
   @PostMapping("/api/ecif/customer/info")
   Customer getCustomer(@RequestBody String id);
+
 }
