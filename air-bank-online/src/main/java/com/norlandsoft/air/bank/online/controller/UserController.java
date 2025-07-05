@@ -21,14 +21,27 @@ public class UserController {
 
   @PostMapping("/login")
   public ApiResponse userLogin(@RequestBody User user) {
-    user.setId("chaimx");
-    user.setName("Eric Chai");
-    return ApiResponse.success(user);
+    User u = service.userLogin(user);
+    if (u == null) {
+      return ApiResponse.error();
+    }
+    if (u.getLoginStatus().equals(User.LOGGED_IN)) {
+      return ApiResponse.success(u);
+    }
+    return ApiResponse.error();
+  }
+
+  @PostMapping("/current")
+  public ApiResponse currentUser() {
+    return ApiResponse.success();
   }
 
   @PostMapping("/info")
   public ApiResponse getUserInfo(@RequestBody User user) {
     User u = service.getUserById(user.getId());
+    if (u == null) {
+      return ApiResponse.error();
+    }
     return ApiResponse.success(u);
   }
 

@@ -7,4 +7,6 @@ import com.norlandsoft.air.bank.entity.User;
  */
 public interface UserService {
   User getUserById(String id);
+
+  User userLogin(User user);
 }

@@ -8,10 +8,16 @@ import lombok.Data;
  */
 @Data
 public class User {
+
+  public static final String LOGGED_IN = "logged_in";
+  public static final String LOGGED_OUT = "logged_out";
+
   private String id;
   private String name;
   private String password;
   private String address;
   private String email;
   private String phone;
+
+  private String loginStatus = LOGGED_OUT;
 }

@@ -1,7 +1,8 @@
 import React from "react";
-import {connect} from "umi";
+import {connect, history} from "umi";
 import { Form, Input, Button, Card } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
+import { error } from "@/components/Notification";
 import "./index.less";
 
 const Login: React.FC<any> = props => {
@@ -13,6 +14,16 @@ const Login: React.FC<any> = props => {
     dispatch({
       type: 'user/login',
       payload: values,
+      callback: resp => {
+        if (resp.success) {
+          history.push('/');
+        } else {
+          error({
+            title: '登录失败',
+            message: '请检查用户ID和密码',
+          });
+        }
+      }
     });
   };
 
@@ -27,7 +38,7 @@ const Login: React.FC<any> = props => {
           onFinish={onFinish}
         >
           <Form.Item
-            name="userId"
+            name="id"
             rules={[{ required: true, message: "请输入用户ID" }]}
           >
             <Input

@@ -3,13 +3,17 @@ import {POST} from "@/utils/HttpRequest";
 export default {
   namespace: 'user',
   state: {
-    user: null,
+    currentUser: {},
   },
   effects: {
-    *login(action, {call, put}) {
-      const resp = yield call(POST, '/api/user/login', action.payload);
-      console.log(resp);
+    *login({payload, callback}, {call, put}) {
+      const resp = yield call(POST, '/api/user/login', payload);
+      if (callback) callback(resp);
     },
+    *fetchCurrentUser({_, callback}, {put}) {
+      const resp = yield POST('/api/user/current', {});
+      if (callback) callback(resp);
+    }
   },
   reducers: {
   },

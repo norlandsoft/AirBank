@@ -24,4 +24,18 @@ public class UserServiceImpl implements UserService {
     return u;
   }
 
+  @Override
+  public User userLogin(User user) {
+    User u = mapper.getUserById(user.getId());
+    if (u == null || u.getId() == null) {
+      return null;
+    }
+
+    // 比较密码
+
+    u.setPassword(null);
+    u.setLoginStatus(User.LOGGED_IN);
+    return u;
+  }
+
 }

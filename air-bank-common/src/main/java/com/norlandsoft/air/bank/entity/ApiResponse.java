@@ -24,4 +24,10 @@ public class ApiResponse {
     resp.setData(data);
     return resp;
   }
+
+  public static ApiResponse error() {
+    ApiResponse resp = new ApiResponse();
+    resp.setSuccess(false);
+    return resp;
+  }
 }
