@@ -21,6 +21,8 @@ public class UserController {
 
   @PostMapping("/login")
   public ApiResponse userLogin(@RequestBody User user) {
+    user.setId("chaimx");
+    user.setName("Eric Chai");
     return ApiResponse.success(user);
   }
 

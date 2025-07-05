@@ -10,10 +10,12 @@
   "dependencies": {
     "@ant-design/pro-components": "^2.8.7",
     "antd": "^5.25.0",
+    "crypto-js": "^4.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@umijs/max": "^4.4.10",
