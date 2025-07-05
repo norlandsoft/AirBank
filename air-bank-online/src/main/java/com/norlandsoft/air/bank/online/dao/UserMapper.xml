@@ -15,13 +15,6 @@
     id, name, password, address, email, phone
   </sql>
 
-  <!-- 查询所有用户 -->
-  <select id="getAllUsers" resultMap="UserResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM bank_online_user
-  </select>
-
   <!-- 根据用户ID查询用户 -->
   <select id="getUserById" resultMap="UserResultMap">
     SELECT

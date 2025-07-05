@@ -19,11 +19,9 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public User getUserById(String id) {
-    return mapper.getUserById(id);
+    User u = mapper.getUserById(id);
+    u.setPassword(null);
+    return u;
   }
 
-  @Override
-  public List<User> getAllUsers() {
-    return mapper.getAllUsers();
-  }
 }
