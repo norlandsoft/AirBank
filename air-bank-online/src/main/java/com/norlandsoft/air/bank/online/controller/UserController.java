@@ -27,8 +27,9 @@ public class UserController {
   }
 
   @PostMapping("/info")
-  public ApiResponse getUserInfo() {
-    return ApiResponse.success();
+  public ApiResponse getUserInfo(@RequestBody User user) {
+    User u = service.getUserById(user.getId());
+    return ApiResponse.success(u);
   }
 
 }

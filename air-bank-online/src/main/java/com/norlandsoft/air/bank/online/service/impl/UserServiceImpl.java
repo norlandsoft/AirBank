@@ -1,11 +1,29 @@
 package com.norlandsoft.air.bank.online.service.impl;
 
+import com.norlandsoft.air.bank.entity.User;
+import com.norlandsoft.air.bank.online.dao.UserMapper;
 import com.norlandsoft.air.bank.online.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * Created by ChaiMingXu, on 2025/7/4
  */
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+
+  private final UserMapper mapper;
+
+  @Override
+  public User getUserById(String id) {
+    return mapper.getUserById(id);
+  }
+
+  @Override
+  public List<User> getAllUsers() {
+    return mapper.getAllUsers();
+  }
 }

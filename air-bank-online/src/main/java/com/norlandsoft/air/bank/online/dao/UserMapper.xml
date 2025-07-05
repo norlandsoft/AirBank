@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.norlandsoft.air.bank.online.dao.UserMapper">
+
+  <resultMap id="UserResultMap" type="com.norlandsoft.air.bank.entity.User">
+    <id property="id" column="id" jdbcType="VARCHAR" />
+    <result property="name" column="name" jdbcType="VARCHAR" />
+    <result property="password" column="password" jdbcType="VARCHAR" />
+    <result property="address" column="address" jdbcType="VARCHAR" />
+    <result property="email" column="email" jdbcType="VARCHAR" />
+    <result property="phone" column="phone" jdbcType="VARCHAR" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, name, password, address, email, phone
+  </sql>
+
+  <!-- 查询所有用户 -->
+  <select id="getAllUsers" resultMap="UserResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM bank_online_user
+  </select>
+
+  <!-- 根据用户ID查询用户 -->
+  <select id="getUserById" resultMap="UserResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM bank_online_user
+    WHERE id = #{id}
+  </select>
+</mapper>
