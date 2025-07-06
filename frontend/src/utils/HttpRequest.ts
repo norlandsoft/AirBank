@@ -19,7 +19,7 @@ const codeMessage = {
 
 // 封装请求头
 function requestHeader() {
-  const token = sessionStorage.getItem("air-auth-token");
+  const token = sessionStorage.getItem("air-bank-user-token");
   return {
     'Authorization': 'Bearer ' + token,
     'Connection': 'keep-alive',

@@ -6,7 +6,7 @@ import com.norlandsoft.air.bank.online.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by ChaiMingXu, on 2025/7/4
@@ -34,7 +34,9 @@ public class UserServiceImpl implements UserService {
     // 比较密码
 
     u.setPassword(null);
+    
     u.setLoginStatus(User.LOGGED_IN);
+    u.setToken(UUID.randomUUID().toString());
     return u;
   }
 

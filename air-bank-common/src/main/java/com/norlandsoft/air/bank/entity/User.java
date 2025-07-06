@@ -20,4 +20,5 @@ public class User {
   private String phone;
 
   private String loginStatus = LOGGED_OUT;
+  private String token;
 }
