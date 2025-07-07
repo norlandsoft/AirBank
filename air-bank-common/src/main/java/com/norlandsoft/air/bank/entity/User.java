@@ -15,9 +15,8 @@ public class User {
   private String id;
   private String name;
   private String password;
-  private String address;
-  private String email;
-  private String phone;
+
+  private String customerId;
 
   private String loginStatus = LOGGED_OUT;
   private String token;
