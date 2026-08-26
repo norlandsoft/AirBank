@@ -1,0 +1,29 @@
+appId: ai.deepseek.dsh-desktop
+productName: DeepSeek Harness Desktop
+directories:
+  output: release
+files:
+  - dist/**
+  - package.json
+  - resources/**
+asar: true
+mac:
+  category: public.app-category.developer-tools
+  icon: resources/icon.png
+  target:
+    - dmg
+    - zip
+win:
+  icon: resources/icon.png
+  target:
+    - nsis
+    - zip
+linux:
+  icon: resources/icon.png
+  target:
+    - AppImage
+    - deb
+  category: Development
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true

@@ -1,81 +1,9 @@
-# Dependencies
 node_modules/
-.pnp
-.pnp.js
-.yarn/install-state.gz
-pnpm-lock.yaml
-
-# Build
 dist/
-dist-ssr/
-build/
-out/
 release/
-*.local
-
-# Vite
-*.tsbuildinfo
-vite.config.ts.timestamp-*
-
-# Logs
-logs/
+out/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# Test / Coverage
-coverage/
-*.lcov
-.nyc_output/
-.vitest/
-
-# Cache
-.cache/
-.parcel-cache/
-.eslintcache
-.stylelintcache
-.turbo/
-.vite/
-
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
-
-# Environment
-.env
-.env.*
-!.env.example
-
-# Editor
-.idea/
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-*.swp
-*.swo
-*~
-
-# OS
 .DS_Store
-Thumbs.db
-Desktop.ini
-
-# Debug / tooling
-.playwright-mcp
-.superpowers
-playwright-report/
-test-results/
-.nyc_output
-
-# Misc
-*.pem
-*.tgz
-.temp/
-.tmp/
-.pnpm-store/
-vendor/tgz/*.tgz
-!vendor/tgz/.gitkeep
-
+.dev-home/
+coverage/
+.env

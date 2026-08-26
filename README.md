@@ -1,70 +1,90 @@
-# AirCode
+<p align="center"><img src="resources/icon.png" width="96" alt="DeepSeek Harness Desktop" /></p>
 
-基于 **Claude Code 内核**的 Web 智能体工作台（源自 [cc-haha](https://github.com/NanmiCoder/cc-haha)，MIT）。
+<h1 align="center">DeepSeek Harness 桌面端</h1>
 
-纯浏览器使用，无桌面客户端：本地 Server 托管 Web UI，任何能访问该端口的设备（本机、局域网手机/电脑）打开浏览器即可使用完整 Claude Code 能力。
+<p align="center">
+  基于 Electron 的 <a href="https://github.com/deepseek-ai/deepseek-harness">DeepSeek Harness</a> 桌面应用 ——<br />
+  内嵌完整 WebUI，功能与浏览器端完全一致；一键安装内核，独立运行。
+</p>
 
-## 快速开始
+## 功能
 
-需要 [Bun](https://bun.sh) ≥ 1.3：
-
-```bash
-bun install
-(cd desktop && bun install && bun run build)
-./bin/aircode
-```
-
-打开 http://127.0.0.1:10330 ，在「设置 → 服务商」中配置模型（支持 Anthropic 官方、ChatGPT/Grok OAuth、DeepSeek、智谱 GLM、Kimi、MiniMax、LM Studio、Ollama 及任意 Anthropic/OpenAI 兼容网关）。
+- 🖥️ **Codex 风格桌面壳** — 无边框窗口（macOS 内嵌红绿灯）、深色/浅色主题、可折叠侧边栏、原生菜单与系统托盘。
+- ⚡ **零环境一键运行** — 首次启动自动下载 Node 运行时、pnpm 与 Harness 内核（官方源 / 国内镜像可选），全部装在应用数据目录，不污染系统环境。
+- 🧩 **完整 WebUI** — 通过 `<webview>` 内嵌 `dsh web` 服务界面（`http://127.0.0.1:<port>`），会话、工具、权限、插件等能力与浏览器端**完全一致**。
+- 🗂️ **档案隔离** — 多档案（dsh profile）管理：新建 / 切换 / 删除，会话与插件互不影响。
+- 🧱 **核心管理** — 内核多版本下载、切换与卸载；支持自定义内核目录与系统已安装的 `dsh`。
+- 🔌 **插件管理** — 查看、安装、卸载当前档案插件（经 `dsh plugin` 转发 pnpm）。
+- 🛰️ **服务生命周期** — 启动 / 停止 / 重启、健康检查、端口占用自动漂移、运行日志面板。
+- 🌐 **中英双语** — 界面语言与主题即时切换。
 
 ## 架构
 
+```text
+┌──────────────────────────────────────────────┐
+│ Electron Renderer (React 19 + Tailwind 4)    │
+│   安装状态机 → Codex 风格外壳 → <webview>     │
+│   内嵌 dsh Web 界面（功能与浏览器端一致）      │
+└──────────────────────┬───────────────────────┘
+                       │ IPC（contextBridge 类型安全 API）
+┌──────────────────────┴───────────────────────┐
+│ Electron Main (TypeScript)                   │
+│   services/runtime   Node 运行时解析与下载    │
+│   services/kernel    内核多版本管理           │
+│   services/server    dsh 进程生命周期+健康检查 │
+│   services/profiles  档案管理                │
+│   services/plugins   插件管理                │
+│   services/setup     首次启动安装状态机        │
+└──────┬───────────────────────────┬───────────┘
+       │                           │
+ runtime/node-v22.22.0        cores/<版本>/ (内核)
+       └─────────────┬─────────────┘
+                     ▼
+   node bin.js --profile <档案> --host 127.0.0.1 --port <port> --no-open
+                     │  DSH_HOME=<应用数据目录>/dsh-home（与系统 ~/.dsh 隔离）
+                     ▼
+        http://127.0.0.1:<port>/  ← <webview> 内嵌
 ```
-浏览器（desktop/ 的 React 构建产物，即 H5 客户端）
-   │ REST /api/* + WebSocket /ws/<sessionId>
-本地 Server（src/server，Bun.serve 单进程）
-   │  · 会话/供应商/权限/定时任务/技能/记忆/MCP 管理
-   │  · /proxy/* 供应商协议转换（Anthropic ↔ OpenAI）
-   │  · H5 远程访问：令牌 + 请求来源分类 + Origin 白名单
-   │ Bun.spawn（每会话一个 CLI 子进程，stream-json 双工）
-Claude Code CLI 内核（src/entrypoints/cli.tsx）
-   · 模型调用、工具循环、权限系统、技能、记忆、子代理
-```
 
-## 远程使用（H5 访问）
+架构参考 [dsh-tauri-desk/deepseek-harness-desktop](https://github.com/dsh-tauri-desk/deepseek-harness-desktop)（Tauri 实现），本项目以 Electron 实现同等能力。
 
-1. 以 `SERVER_HOST=0.0.0.0 ./bin/aircode` 启动（或置于反向代理后）。
-2. 本机浏览器打开「设置 → H5 访问」，开启并生成访问令牌，配置允许的 Origin。
-3. 远程设备浏览器访问 `http://<部署机IP>:10330`，输入令牌即可继续所有会话——锁屏、断网不影响正在运行的任务（服务端常驻 + 断连宽限期）。
-4. 公网部署请使用 HTTPS 反代，代理 `/api/*`、`/proxy/*`、`/ws/*`（开启 WebSocket Upgrade），保留 Host 与 `X-Forwarded-*` 头。
-
-## 与 cc-haha 的差异
-
-- 移除 Electron 桌面壳（终端/桌宠/自动更新等原生能力），Web UI 通过 `browserHost` 降级在浏览器运行
-- 移除 IM 渠道适配器（Telegram/飞书/微信/钉钉/WhatsApp）及其设置页
-- 保留：Claude Code CLI 内核、本地 Server 全部 REST/WS API、供应商管理与协议代理、H5 远程访问、定时任务、技能市场、Agents、记忆、MCP、诊断等
-
-## 常用命令
+## 开发
 
 ```bash
-./bin/aircode                 # 构建（首次）并启动 Server
-bun run start                 # 直接启动 Server（bun run src/server/index.ts）
-bun run web:dev               # Web UI 开发模式（vite）
-bun run web:build             # 重新构建 Web UI
+pnpm install        # 安装依赖（含 Electron 二进制）
+pnpm dev            # 开发模式（HMR + Electron 窗口）
+pnpm build          # 构建 main/preload/renderer 到 dist/
+pnpm typecheck      # TypeScript 检查
+pnpm test           # 单元测试（vitest）
+pnpm pack           # electron-builder 打包安装包
 ```
 
-Server 选项：`--host` / `--port`（或 `SERVER_HOST` / `SERVER_PORT`，默认 127.0.0.1:10330）、`--auth-required`（强制鉴权）、`--cli-path`（指定 CLI）。
+### 无 GUI 冒烟
 
-## 目录
+不打开窗口，直接验证「解析运行时 → 定位内核 → 启动 dsh web → 健康检查 → 停止」全链路：
 
+```bash
+# 指向任意包含 dsh 内核的目录（本地 checkout 或已安装内核）
+DSH_DESKTOP_KERNEL_DIR=/opt/deepseek-harness/apps/cli pnpm smoke
 ```
-src/            Claude Code 内核 + 本地 Server（迁移核心）
-  server/       REST/WS/H5/代理/鉴权
-desktop/        Web UI（React + Vite，构建产物即浏览器客户端）
-bin/aircode     启动器
-legacy/         原 AirCode 实现（已废弃，仅存档参考）
-docs/           cc-haha 原始文档
-```
+
+### 使用本地内核 / 系统 dsh
+
+内核解析顺序：设置里的自定义内核目录 → `DSH_DESKTOP_KERNEL_DIR` 环境变量 → 应用托管核心 → 系统 PATH 中的 `dsh`。Node 运行时解析顺序：自定义路径 → 随包内置 → 已下载 → 系统 `node`（需 ^22.19 或 >=24）。
+
+## 数据位置
+
+应用数据目录（`app.getPath('userData')`）：
+
+| 路径 | 内容 |
+| --- | --- |
+| `settings.json` | 应用设置（语言/主题/端口/镜像…） |
+| `window-state.json` | 窗口几何 |
+| `runtime/` | 下载的 Node 与 pnpm |
+| `cores/` | 多版本 Harness 内核 |
+| `dsh-home/` | 默认 DSH_HOME（档案、会话、插件） |
+| `logs/app.log` | JSON Lines 运行日志 |
 
 ## 许可
 
-基于 MIT 许可的 cc-haha 修改，见 [LICENSE](LICENSE) 与 [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md)。
+MIT
