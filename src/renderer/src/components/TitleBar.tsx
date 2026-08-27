@@ -1,7 +1,7 @@
 import { useApp } from '../store'
 import { useT } from '../hooks'
 import { bridge, inElectron } from '../bridge'
-import { IconMinimize, IconMaximize, IconClose, IconExternal, IconRefresh, IconSidebar } from '../icons'
+import { IconMinimize, IconMaximize, IconClose, IconExternal, IconCommand } from '../icons'
 
 /** 状态点颜色映射。 */
 export function dotClass(state: string | undefined): string {
@@ -13,12 +13,11 @@ export function dotClass(state: string | undefined): string {
   }
 }
 
-/** 顶部标题栏：可拖拽，左侧折叠钮 + 状态，右侧窗口控制（非 macOS 自绘）。 */
-export function TitleBar({ onReloadWebview }: { onReloadWebview(): void }) {
+/** 顶部标题栏：可拖拽，左侧状态，中部 ⌘K 入口，右侧窗口控制（非 macOS 自绘）。 */
+export function TitleBar({ onOpenPalette }: { onOpenPalette(): void }) {
   const t = useT()
   const server = useApp((state) => state.server)
   const view = useApp((state) => state.view)
-  const toggleSidebar = useApp((state) => state.toggleSidebar)
   const isMac = bridge.platform === 'darwin'
   const stateText: Record<string, string> = {
     running: t('serverRunning'), stopped: t('serverStopped'), starting: t('serverStarting'),
@@ -27,9 +26,6 @@ export function TitleBar({ onReloadWebview }: { onReloadWebview(): void }) {
   return (
     <div className="titlebar">
       <div className="flex items-center gap-2" style={{ paddingLeft: isMac ? 66 : 2 }}>
-        <button className="btn-ghost btn titlebar-no-drag !px-2" onClick={toggleSidebar} title="Sidebar">
-          <IconSidebar />
-        </button>
         <span className="pill titlebar-no-drag">
           <span className={dotClass(server?.state)} />
           {stateText[server?.state ?? 'stopped'] ?? server?.state}
@@ -39,12 +35,13 @@ export function TitleBar({ onReloadWebview }: { onReloadWebview(): void }) {
         )}
       </div>
       <div className="flex-1" />
+      <button className="btn titlebar-no-drag palette-trigger" onClick={onOpenPalette} title="⌘K">
+        <IconCommand size={12} /> K
+      </button>
+      <div className="flex-1" />
       <div className="flex items-center gap-1 titlebar-no-drag">
         {server?.url && view === 'chat' && (
-          <>
-            <button className="btn-ghost btn !px-2" title={t('reload')} onClick={onReloadWebview}><IconRefresh /></button>
-            <button className="btn-ghost btn !px-2" title={t('openInBrowser')} onClick={() => void bridge.shell.openExternal(server.url as string)}><IconExternal /></button>
-          </>
+          <button className="btn-ghost btn !px-2" title={t('openInBrowser')} onClick={() => void bridge.shell.openExternal(server.url as string)}><IconExternal /></button>
         )}
         {!isMac && inElectron && (
           <>

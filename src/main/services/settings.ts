@@ -18,6 +18,8 @@ export function defaultSettings(paths: AppPaths): AppSettings {
     autoStart: false,
     closeToTray: true,
     activeProfile: 'web',
+    ideRoot: '',
+    formatOnSave: true,
   }
 }
 
@@ -37,6 +39,8 @@ export function sanitizeSettings(input: unknown, paths: AppPaths): AppSettings {
   if (typeof raw.autoStart === 'boolean') out.autoStart = raw.autoStart
   if (typeof raw.closeToTray === 'boolean') out.closeToTray = raw.closeToTray
   if (typeof raw.activeProfile === 'string' && raw.activeProfile.length > 0) out.activeProfile = raw.activeProfile
+  if (typeof raw.ideRoot === 'string') out.ideRoot = raw.ideRoot
+  if (typeof raw.formatOnSave === 'boolean') out.formatOnSave = raw.formatOnSave
   return out
 }
 

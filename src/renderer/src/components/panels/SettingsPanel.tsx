@@ -90,6 +90,9 @@ export function SettingsPanel() {
         <Row label={t('useMirror')}>
           <input type="checkbox" checked={settings.useMirror} onChange={(event) => void save({ useMirror: event.target.checked })} />
         </Row>
+        <Row label={t('formatOnSave')}>
+          <input type="checkbox" checked={settings.formatOnSave} onChange={(event) => void save({ formatOnSave: event.target.checked })} />
+        </Row>
         <Row label={t('autoStart')}>
           <input type="checkbox" checked={settings.autoStart} onChange={(event) => void save({ autoStart: event.target.checked })} />
         </Row>

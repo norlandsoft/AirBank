@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, safeStorage } from 'electron'
 import path from 'node:path'
 import { makePaths } from './core/paths'
 import { Logger } from './services/logger'
@@ -6,9 +6,18 @@ import { SettingsService } from './services/settings'
 import { RuntimeManager } from './services/runtime'
 import { KernelManager } from './services/kernel'
 import { DshServerManager } from './services/server'
+import { KernelProxyService } from './services/kernel-proxy'
 import { ProfileService } from './services/profiles'
 import { PluginService } from './services/plugins'
 import { SetupService } from './services/setup'
+import { WorkspaceService } from './services/workspace'
+import { FormatService } from './services/format'
+import { GitService } from './services/git'
+import { LspService } from './services/lsp'
+import { SshService, type CryptoBox } from './services/ssh'
+import { CiService } from './services/ci'
+import { GithubService } from './services/github'
+import { TerminalService } from './services/terminal'
 import { registerIpc } from './ipc'
 import { createMainWindow } from './window'
 import { createTray, type TrayHandle } from './tray'
@@ -21,9 +30,18 @@ export interface Services {
   runtime: RuntimeManager
   kernel: KernelManager
   server: DshServerManager
+  kernelProxy: KernelProxyService
   profiles: ProfileService
   plugins: PluginService
   setup: SetupService
+  workspace: WorkspaceService
+  format: FormatService
+  git: GitService
+  lsp: LspService
+  ssh: SshService
+  ci: CiService
+  github: GithubService
+  terminal: TerminalService
 }
 
 export interface DesktopApp {
@@ -43,10 +61,27 @@ export function createDesktopApp(): DesktopApp {
   const runtime = new RuntimeManager(paths, settings, logger, bundledRuntime)
   const kernel = new KernelManager(paths, settings, runtime, logger)
   const server = new DshServerManager(settings, runtime, kernel, logger)
+  const kernelProxy = new KernelProxyService(server, logger)
   const profiles = new ProfileService(settings)
   const plugins = new PluginService(settings, runtime, kernel, logger)
   const setup = new SetupService(runtime, kernel, logger)
-  const services: Services = { logger, settings, runtime, kernel, server, profiles, plugins, setup }
+  const workspace = new WorkspaceService(logger)
+  const format = new FormatService(workspace, logger)
+  const git = new GitService(workspace, logger)
+  const lsp = new LspService(workspace, logger)
+  // safeStorage 加密盒在此注入（electron 仅出现在 app/ipc 层，service 保持可测）
+  const cryptoBox: CryptoBox = {
+    encrypt: (plain) => safeStorage.encryptString(plain).toString('hex'),
+    decrypt: (hex) => {
+      try { return safeStorage.decryptString(Buffer.from(hex, 'hex')) } catch { return null }
+    },
+  }
+  const ssh = new SshService(paths, cryptoBox, logger)
+  const ci = new CiService(workspace, logger)
+  const github = new GithubService(workspace, logger)
+  const terminal = new TerminalService(workspace, logger)
+  const services: Services = { logger, settings, runtime, kernel, server, kernelProxy, profiles, plugins, setup, workspace, format, git, lsp, ssh, ci, github, terminal }
+  if (settings.get().ideRoot !== '') void workspace.setRoot(settings.get().ideRoot).catch(() => undefined)
 
   let mainWindow: BrowserWindow | null = null
   let tray: TrayHandle | null = null
@@ -79,7 +114,6 @@ export function createDesktopApp(): DesktopApp {
     services,
     async start() {
       installAppMenu({
-        onReloadWebview: () => broadcast('menu:reload-webview', null),
         onOpenLogs: () => { void import('electron').then(({ shell }) => shell.openPath(paths.logsDir)) },
       })
       registerIpc({
@@ -92,6 +126,12 @@ export function createDesktopApp(): DesktopApp {
         onClosed: () => { mainWindow = null },
       })
       server.onStatus((status) => broadcast('event:server-status', status))
+      kernelProxy.onStreamEvent((event) => broadcast('event:dsh-stream', event))
+      workspace.onDidChange((event) => broadcast('event:ws-change', event))
+      lsp.onMessage((message) => broadcast('event:lsp-message', message))
+      ssh.onEvent((event) => broadcast('event:ssh', event))
+      ci.onEvent((event) => broadcast('event:ci', event))
+      terminal.onEvent((event) => broadcast('event:term', event))
       logger.onAppend((entry) => broadcast('event:log', entry))
       setup.onPlan((plan) => broadcast('event:install-plan', plan))
       settings.onChange((next) => {
@@ -123,6 +163,11 @@ export function createDesktopApp(): DesktopApp {
     async dispose() {
       quitting = true
       tray?.destroy()
+      await terminal.dispose()
+      await ci.dispose()
+      await ssh.dispose()
+      await lsp.dispose()
+      await workspace.dispose()
       await server.dispose()
       logger.close()
     },

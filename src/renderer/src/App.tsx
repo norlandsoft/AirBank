@@ -1,12 +1,23 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useApp } from './store'
 import { useApplyTheme } from './hooks'
-import { bridge } from './bridge'
 import { TitleBar } from './components/TitleBar'
-import { Sidebar } from './components/Sidebar'
 import { SetupView } from './components/SetupView'
 import { Dashboard } from './components/Dashboard'
-import { WebviewPane, type WebviewHandle } from './components/WebviewPane'
+import { AgentPanel } from './modules/agent/AgentPanel'
+import { useAgent } from './modules/agent/store'
+import { IdePanel } from './modules/ide/IdePanel'
+import { useIde } from './modules/ide/store'
+import { GitPanel } from './modules/git/GitPanel'
+import { useGit } from './modules/git/store'
+import { ServersPanel } from './modules/servers/ServersPanel'
+import { CicdPanel } from './modules/cicd/CicdPanel'
+import { useCicd } from './modules/cicd/store'
+import { ActivityBar } from './app/ActivityBar'
+import { StatusBar } from './app/StatusBar'
+import { BottomPanel } from './app/BottomPanel'
+import { useTerminal } from './stores/terminal'
+import { CommandPalette } from './app/CommandPalette'
 import { ProfilesPanel } from './components/panels/ProfilesPanel'
 import { PluginsPanel } from './components/panels/PluginsPanel'
 import { CoresPanel } from './components/panels/CoresPanel'
@@ -27,14 +38,47 @@ function Toast() {
 
 export default function App() {
   const { ready, runtime, kernel, server, view } = useApp()
-  const webviewRef = useRef<WebviewHandle | null>(null)
+  const bottomOpen = useTerminal((state) => state.bottomOpen)
+  const [paletteOpen, setPaletteOpen] = useState(false)
   useApplyTheme()
 
   useEffect(() => {
     void useApp.getState().init()
-    const unsub = bridge.onMenuReloadWebview(() => webviewRef.current?.reload())
-    return unsub
+    void useIde.getState().init()
   }, [])
+
+  // IDE root 就绪后预热 Git 状态（状态栏分支显示）与 GitHub 仓库（CI 徽标）
+  const ideRoot = useIde((state) => state.root)
+  useEffect(() => {
+    if (ideRoot) {
+      void useGit.getState().refresh()
+      void useCicd.getState().refreshGithub()
+    }
+  }, [ideRoot])
+
+  // ⌘K 命令面板 / ⌘J 底部面板
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent): void => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        setPaletteOpen((v) => !v)
+      }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'j') {
+        event.preventDefault()
+        useTerminal.getState().toggleBottom()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  // 自建会话连接生命周期：服务运行 → 连；停止 → 断（切视图不断流）
+  const serverUrl = server?.state === 'running' && server.url ? server.url : null
+  useEffect(() => {
+    const agent = useAgent.getState()
+    if (serverUrl) agent.connect(serverUrl)
+    else agent.disconnect()
+  }, [serverUrl])
 
   if (!ready) {
     return (
@@ -50,14 +94,22 @@ export default function App() {
 
   return (
     <div className="h-full surface flex flex-col">
-      <TitleBar onReloadWebview={() => webviewRef.current?.reload()} />
+      <TitleBar onOpenPalette={() => setPaletteOpen(true)} />
       <div className="flex-1 flex min-h-0">
-        <Sidebar />
+        <ActivityBar />
         <main className="flex-1 flex flex-col min-w-0">
           {needsSetup ? (
             <SetupView />
           ) : view === 'chat' ? (
-            running ? <WebviewPane ref={webviewRef} url={server.url as string} /> : <Dashboard />
+            !running ? <Dashboard /> : <AgentPanel />
+          ) : view === 'ide' ? (
+            <IdePanel />
+          ) : view === 'git' ? (
+            <GitPanel />
+          ) : view === 'servers' ? (
+            <ServersPanel />
+          ) : view === 'cicd' ? (
+            <CicdPanel />
           ) : view === 'profiles' ? (
             <ProfilesPanel />
           ) : view === 'plugins' ? (
@@ -73,7 +125,10 @@ export default function App() {
           )}
         </main>
       </div>
+      {bottomOpen && <BottomPanel />}
+      <StatusBar />
       <Toast />
+      {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} />}
     </div>
   )
 }

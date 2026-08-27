@@ -17,7 +17,8 @@ function mockApi(): DesktopApi {
   const kernel: KernelStatus = { installed: false, source: null, dir: null, binPath: null, version: null }
   const settings: AppSettings = {
     locale: 'zh-CN', theme: 'dark', port: 3080, dshHome: '', kernelDir: null, nodePath: null,
-    useMirror: false, autoStart: false, closeToTray: true, activeProfile: 'web',
+    useMirror: false, autoStart: false, closeToTray: true, activeProfile: 'web', ideRoot: '',
+    formatOnSave: true,
   }
   const info: AppInfo = {
     appVersion: 'dev', electron: '', chrome: '', node: '', platform: 'darwin', arch: 'arm64',
@@ -56,6 +57,83 @@ function mockApi(): DesktopApi {
     logs: { get: async (): Promise<LogEntry[]> => [], clear: async () => undefined },
     window: { minimize: async () => undefined, maximize: async () => undefined, close: async () => undefined },
     shell: { openExternal: async () => undefined, showItem: async () => undefined },
+    dsh: {
+      rpc: async () => { throw new Error('dsh rpc unavailable outside Electron') },
+      respond: async () => { throw new Error('dsh respond unavailable outside Electron') },
+      stream: {
+        open: async () => { throw new Error('dsh stream unavailable outside Electron') },
+        close: async () => undefined,
+      },
+    },
+    onDshStreamEvent: () => noop,
+    workspace: {
+      root: async () => null,
+      setRoot: async () => undefined,
+      pickRoot: async () => null,
+      list: async () => [],
+      read: async () => ({ content: '', size: 0, readonly: true, binary: false, tooLarge: false }),
+      write: async () => undefined,
+      walk: async () => ({ files: [], truncated: false }),
+      format: async (rel, content) => ({ content, formatted: false }),
+    },
+    onWorkspaceChange: () => noop,
+    git: {
+      status: async () => null,
+      diff: async () => '',
+      stage: async () => undefined,
+      unstage: async () => undefined,
+      commit: async () => ({ hash: '' }),
+      log: async () => [],
+      branches: async () => null,
+      checkout: async () => undefined,
+      createBranch: async () => undefined,
+    },
+    lsp: {
+      ensure: async () => ({ running: false, root: null, pid: null }),
+      send: async () => { throw new Error('lsp unavailable outside Electron') },
+    },
+    onLspMessage: () => noop,
+    ssh: {
+      list: async () => [],
+      add: async () => [],
+      update: async () => [],
+      remove: async () => [],
+      connect: async () => undefined,
+      disconnect: async () => undefined,
+      state: async () => 'disconnected',
+      shell: {
+        open: async () => { throw new Error('ssh unavailable outside Electron') },
+        data: async () => undefined,
+        resize: async () => undefined,
+        close: async () => undefined,
+      },
+      sftp: {
+        list: async () => [],
+        realpath: async () => '/',
+        mkdir: async () => undefined,
+        delete: async () => undefined,
+        rename: async () => undefined,
+      },
+      transfer: async () => { throw new Error('ssh unavailable outside Electron') },
+      cancelTransfer: async () => undefined,
+    },
+    onSshEvent: () => noop,
+    cicd: {
+      pipelines: async () => [],
+      run: async () => { throw new Error('cicd unavailable outside Electron') },
+      cancel: async () => undefined,
+      runs: async () => [],
+      githubRepo: async () => null,
+      githubRuns: async () => [],
+    },
+    onCiEvent: () => noop,
+    term: {
+      open: async () => { throw new Error('term unavailable outside Electron') },
+      data: async () => undefined,
+      resize: async () => undefined,
+      close: async () => undefined,
+    },
+    onTermEvent: () => noop,
     quit: async () => undefined,
     onServerStatus: () => noop,
     onLog: () => noop,
@@ -64,7 +142,6 @@ function mockApi(): DesktopApi {
     onRuntimeChanged: () => noop,
     onSettingsChanged: () => noop,
     onNativeTheme: () => noop,
-    onMenuReloadWebview: () => noop,
   }
 }
 

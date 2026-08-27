@@ -75,3 +75,30 @@ export const IconLogo = ({ size = 20 }: P) => (
     <path d="M7 6.5h4.2c3 0 5.3 2.3 5.3 5.5s-2.3 5.5-5.3 5.5H7v-11zm2.6 2.4v6.2h1.5c1.8 0 2.8-1.3 2.8-3.1s-1-3.1-2.8-3.1h-1.5z" fill="#fff"/>
   </svg>
 )
+export const IconCode = ({ size, ...rest }: P) => (
+  <svg {...base(size)} {...rest}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+)
+export const IconGitBranch = ({ size, ...rest }: P) => (
+  <svg {...base(size)} {...rest}><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+)
+export const IconServer = ({ size, ...rest }: P) => (
+  <svg {...base(size)} {...rest}><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+)
+export const IconPipeline = ({ size, ...rest }: P) => (
+  <svg {...base(size)} {...rest}><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 9v3a3 3 0 0 0 3 3h3"/><path d="M13 6h3a2 2 0 0 1 2 2v4"/></svg>
+)
+export const IconFolder = ({ size, ...rest }: P) => (
+  <svg {...base(size)} {...rest}><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+)
+export const IconFile = ({ size, ...rest }: P) => (
+  <svg {...base(size)} {...rest}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+)
+export const IconSearch = ({ size, ...rest }: P) => (
+  <svg {...base(size)} {...rest}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+)
+export const IconCommand = ({ size, ...rest }: P) => (
+  <svg {...base(size)} {...rest}><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg>
+)
+export const IconX = ({ size, ...rest }: P) => (
+  <svg {...base(size)} {...rest}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+)

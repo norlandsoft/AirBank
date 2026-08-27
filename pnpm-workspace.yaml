@@ -1,6 +1,9 @@
 allowBuilds:
+  # ssh2 的可选原生加速包：有意不构建（缺失时走纯 JS 加密，见 docs/frontend-rewrite-design.md §0 偏差 6）
+  cpu-features: false
   electron: true
   electron-winstaller: true
   esbuild: true
+  ssh2: false
 overrides:
   '@electron/get': ^3.1.0

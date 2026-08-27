@@ -45,7 +45,6 @@ export function createMainWindow(options: MainWindowOptions): BrowserWindow {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
-      webviewTag: true,
       spellcheck: false,
     },
   })

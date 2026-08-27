@@ -5,7 +5,7 @@ import type {
   RuntimeStatus, ServerStatus,
 } from '../../shared/types'
 
-export type View = 'chat' | 'profiles' | 'plugins' | 'cores' | 'logs' | 'settings' | 'about'
+export type View = 'chat' | 'ide' | 'git' | 'servers' | 'cicd' | 'profiles' | 'plugins' | 'cores' | 'logs' | 'settings' | 'about'
 
 interface AppState {
   ready: boolean
@@ -17,14 +17,12 @@ interface AppState {
   installPlan: InstallPlan | null
   installRunning: boolean
   view: View
-  sidebarCollapsed: boolean
   logs: LogEntry[]
   toast: string | null
   nativeDark: boolean
 
   init(): Promise<void>
   setView(view: View): void
-  toggleSidebar(): void
   showToast(message: string): void
   patchSettings(partial: Partial<AppSettings>): Promise<void>
   refreshKernel(): Promise<void>
@@ -48,7 +46,6 @@ export const useApp = create<AppState>((set, get) => ({
   installPlan: null,
   installRunning: false,
   view: 'chat',
-  sidebarCollapsed: false,
   logs: [],
   toast: null,
   nativeDark: window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true,
@@ -68,7 +65,6 @@ export const useApp = create<AppState>((set, get) => ({
   },
 
   setView(view) { set({ view }) },
-  toggleSidebar() { set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })) },
 
   showToast(message) {
     set({ toast: message })

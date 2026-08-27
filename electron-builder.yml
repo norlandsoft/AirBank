@@ -7,6 +7,15 @@ files:
   - package.json
   - resources/**
 asar: true
+# 项目无必须的原生依赖（ssh2 的 cpu-features 为可选，缺失时走纯 JS）：
+# 关闭 @electron/rebuild，避免对可选原生包构建失败导致整包失败。
+npmRebuild: false
+# 需解包的依赖：typescript-language-server（子进程 spawn 入口，asar 内不可执行）、
+# typescript（其依赖）、prettier（ESM 动态 import，asar 内 fs patch 不覆盖 ESM）。
+asarUnpack:
+  - node_modules/typescript-language-server/**
+  - node_modules/typescript/**
+  - node_modules/prettier/**
 mac:
   category: public.app-category.developer-tools
   icon: resources/icon.png

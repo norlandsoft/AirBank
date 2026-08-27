@@ -1,7 +1,6 @@
 import { app, Menu, shell } from 'electron'
 
 export interface MenuActions {
-  onReloadWebview(): void
   onOpenLogs(): void
 }
 
@@ -39,7 +38,6 @@ export function installAppMenu(actions: MenuActions): void {
     {
       label: '视图',
       submenu: [
-        { label: '刷新对话界面', accelerator: 'CmdOrCtrl+R', click: actions.onReloadWebview },
         { label: '打开日志目录', click: actions.onOpenLogs },
         { type: 'separator' },
         { role: 'toggleDevTools', label: '开发者工具' },
