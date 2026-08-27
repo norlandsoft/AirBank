@@ -42,9 +42,6 @@ export const IconExternal = ({ size, ...rest }: P) => (
 export const IconRefresh = ({ size, ...rest }: P) => (
   <svg {...base(size)} {...rest}><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>
 )
-export const IconCopy = ({ size, ...rest }: P) => (
-  <svg {...base(size)} {...rest}><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-)
 export const IconMinimize = ({ size, ...rest }: P) => (
   <svg {...base(size)} {...rest}><path d="M5 12h14"/></svg>
 )

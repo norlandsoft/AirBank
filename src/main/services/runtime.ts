@@ -3,7 +3,7 @@ import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import type { AppPaths } from '../core/paths'
 import { NODE_VERSION, PNPM_VERSION, nodeDist, nodePlatform, pnpmDist } from '../core/urls'
-import { nodeVersionSupported, parseVersion } from '../core/semver'
+import { nodeVersionSupported } from '../core/semver'
 import { downloadFile, extractArchive } from './download'
 import type { Logger } from './logger'
 import type { SettingsService } from './settings'
@@ -133,9 +133,5 @@ export class RuntimeManager {
 
   static minNodeText(): string {
     return `${MIN_NODE[0]}.${MIN_NODE[1]}`
-  }
-
-  static versionOf(version: string): [number, number, number] {
-    return parseVersion(version)
   }
 }

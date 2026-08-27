@@ -65,7 +65,7 @@ export function SettingsPanel() {
         </Row>
         <Row label={t('dshHome')} desc={t('dshHomeDesc')}>
           <input
-            className="input" placeholder="~/.dsh-desktop/dsh-home"
+            className="input" placeholder="留空 = 应用数据目录/dsh-home"
             value={dshHome ?? settings.dshHome}
             onChange={(event) => setDshHome(event.target.value)}
             onBlur={() => { const v = dshHome; setDshHome(null); if (v !== null && v !== settings.dshHome) void save({ dshHome: v.trim() }) }}

@@ -10,7 +10,7 @@ export interface DownloadProgress { received: number; total: number | null; perc
 export function downloadFile(url: string, dest: string, onProgress?: (progress: DownloadProgress) => void, redirects = 5): Promise<DownloadProgress> {
   return new Promise((resolve, reject) => {
     const client = url.startsWith('http:') ? http : https
-    const request = client.get(url, { headers: { 'User-Agent': 'dsh-desktop/0.1' } }, (response) => {
+    const request = client.get(url, { headers: { 'User-Agent': 'aircode/0.1' } }, (response) => {
       const status = response.statusCode ?? 0
       if (status >= 300 && status < 400 && response.headers.location) {
         response.resume()

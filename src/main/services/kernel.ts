@@ -193,7 +193,7 @@ export class KernelManager {
   /** npm 回退路径：在核心目录内 `npm install @deepseek-ai/dsh`。 */
   private async installViaNpm(dir: string, nodePath: string, mirror: boolean, onProgress: (percent: number) => void): Promise<void> {
     fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({
-      name: 'dsh-desktop-core', private: true, dependencies: { [KERNEL_NPM_SPEC]: 'latest' },
+      name: 'aircode-core', private: true, dependencies: { [KERNEL_NPM_SPEC]: 'latest' },
     }, null, 2))
     const npmCli = process.platform === 'win32'
       ? path.join(path.dirname(nodePath), 'node_modules', 'npm', 'bin', 'npm-cli.js')
@@ -230,7 +230,7 @@ export class KernelManager {
   /** 查询上游最新内核版本（最佳努力，失败返回 null）。 */
   async latestVersion(): Promise<string | null> {
     try {
-      const response = await fetch(PKG_LATEST_API, { headers: { 'User-Agent': 'dsh-desktop/0.1' }, signal: AbortSignal.timeout(10_000) })
+      const response = await fetch(PKG_LATEST_API, { headers: { 'User-Agent': 'aircode/0.1' }, signal: AbortSignal.timeout(10_000) })
       if (!response.ok) return null
       const data = (await response.json()) as { tag_name?: string }
       return parseVersionText(data.tag_name ?? '')
