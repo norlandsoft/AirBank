@@ -89,18 +89,72 @@ describe('applySessionEvent', () => {
     expect(s.items[0]).toMatchObject({ kind: 'assistant', id: 'assistant:1:1', blocks: [{ kind: 'text', text: 'full' }] })
   })
 
-  it('tool/call 与 tool/result 经 callId 配对（ToolResultBlock.toolCallId）', () => {
+  it('write/edit 持久显示：call 建档 + result 合并', () => {
     let s = emptySlice('s1')
-    s = applySessionEvent(s, ev('tool/call', { turn: 1, step: 1, callId: 'c1', name: 'bash', arguments: '{"cmd":"ls"}' }, 1))
+    s = applySessionEvent(s, ev('tool/call', { turn: 1, step: 1, callId: 'c1', name: 'edit', arguments: '{"path":"a.ts"}' }, 1))
     s = applySessionEvent(s, ev('tool/result', {
       turn: 1, step: 1,
       message: { content: [{ type: 'tool-result', toolCallId: 'c1', content: [{ type: 'text', text: 'ok' }] }] },
     }, 2))
     expect(s.items).toHaveLength(1)
     expect(s.items[0]).toMatchObject({
-      kind: 'tool', callId: 'c1', name: 'bash', argumentsRaw: '{"cmd":"ls"}',
+      kind: 'tool', callId: 'c1', name: 'edit', argumentsRaw: '{"path":"a.ts"}',
       result: { content: [{ type: 'text', text: 'ok' }] },
     })
+  })
+
+  it('其它工具瞬时显示：新调用覆盖上一条，不累积', () => {
+    let s = emptySlice('s1')
+    s = applySessionEvent(s, ev('tool/call', { turn: 1, step: 1, callId: 'c1', name: 'bash', arguments: '{"cmd":"ls"}' }, 1))
+    expect(s.items).toHaveLength(1)
+    expect(s.items[0]).toMatchObject({ kind: 'tool-status', callId: 'c1', name: 'bash', state: 'running' })
+    s = applySessionEvent(s, ev('tool/call', { turn: 1, step: 1, callId: 'c2', name: 'read', arguments: '{"path":"b.ts"}' }, 2))
+    expect(s.items).toHaveLength(1)
+    expect(s.items[0]).toMatchObject({ kind: 'tool-status', callId: 'c2', name: 'read', state: 'running' })
+  })
+
+  it('瞬时条目：当前调用结果更新状态；旧调用结果被忽略', () => {
+    let s = emptySlice('s1')
+    s = applySessionEvent(s, ev('tool/call', { turn: 1, step: 1, callId: 'c1', name: 'bash', arguments: '{}' }, 1))
+    s = applySessionEvent(s, ev('tool/call', { turn: 1, step: 1, callId: 'c2', name: 'bash', arguments: '{}' }, 2))
+    // c1 的结果（旧）→ 忽略，仍显示 c2 running
+    s = applySessionEvent(s, ev('tool/result', {
+      turn: 1, step: 1, message: { content: [{ type: 'tool-result', toolCallId: 'c1', content: [] }] },
+    }, 3))
+    expect(s.items[0]).toMatchObject({ kind: 'tool-status', callId: 'c2', state: 'running' })
+    // c2 的结果（当前）→ done
+    s = applySessionEvent(s, ev('tool/result', {
+      turn: 1, step: 1, message: { content: [{ type: 'tool-result', toolCallId: 'c2', content: [] }] },
+    }, 4))
+    expect(s.items[0]).toMatchObject({ kind: 'tool-status', callId: 'c2', state: 'done' })
+  })
+
+  it('新消息（assistant/user）覆盖瞬时状态；持久条目保留', () => {
+    let s = emptySlice('s1')
+    s = applySessionEvent(s, ev('tool/call', { turn: 1, step: 1, callId: 'c1', name: 'write', arguments: '{"path":"a"}' }, 1))
+    s = applySessionEvent(s, ev('tool/call', { turn: 1, step: 1, callId: 'c2', name: 'bash', arguments: '{}' }, 2))
+    expect(s.items).toHaveLength(2)
+    s = applySessionEvent(s, ev('assistant/message', { turn: 1, step: 1, message: { content: [{ type: 'text', text: 'done' }] } }, 3))
+    // 瞬时消失；write 持久保留 + assistant 消息自身 = 2 条
+    expect(s.items).toHaveLength(2)
+    expect(s.items.some((i) => i.kind === 'tool-status')).toBe(false)
+    expect(s.items.find((i) => i.kind === 'tool')).toMatchObject({ callId: 'c1', name: 'write' })
+    // user/message 同样覆盖瞬时
+    s = applySessionEvent(s, ev('tool/call', { turn: 2, step: 1, callId: 'c3', name: 'bash', arguments: '{}' }, 4))
+    s = applySessionEvent(s, ev('user/message', { id: 'm9', content: [], source: { kind: 'human' } }, 5))
+    expect(s.items.some((i) => i.kind === 'tool-status')).toBe(false)
+  })
+
+  it('瞬时与持久并存：持久结果不受瞬时影响', () => {
+    let s = emptySlice('s1')
+    s = applySessionEvent(s, ev('tool/call', { turn: 1, step: 1, callId: 'c1', name: 'edit', arguments: '{"path":"a"}' }, 1))
+    s = applySessionEvent(s, ev('tool/call', { turn: 1, step: 1, callId: 'c2', name: 'bash', arguments: '{}' }, 2))
+    s = applySessionEvent(s, ev('tool/result', {
+      turn: 1, step: 1, message: { content: [{ type: 'tool-result', toolCallId: 'c1', content: [{ type: 'text', text: 'ok' }] }] },
+    }, 3))
+    expect(s.items).toHaveLength(2)
+    expect(s.items.find((i) => i.id === 'tool:c1')).toMatchObject({ result: { content: [{ type: 'text', text: 'ok' }] } })
+    expect(s.items.find((i) => i.kind === 'tool-status')).toMatchObject({ callId: 'c2', state: 'running' })
   })
 })
 
@@ -147,7 +201,7 @@ describe('applyHistory', () => {
   const entries = [
     { event: ev('user/message', { id: 'm1', content: [{ type: 'text', text: 'q' }], source: { kind: 'human' } }, 1) },
     { event: ev('assistant/message', { turn: 1, step: 1, message: { content: [{ type: 'text', text: 'a' }] } }, 2) },
-    { event: ev('tool/call', { turn: 1, step: 1, callId: 'c1', name: 'bash', arguments: '{}' }, 3) },
+    { event: ev('tool/call', { turn: 1, step: 1, callId: 'c1', name: 'write', arguments: '{}' }, 3) },
   ]
 
   it('replace 重建时间线 + 投影基线', () => {

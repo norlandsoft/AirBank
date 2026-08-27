@@ -25,7 +25,8 @@ export type SocketFactory = (url: string) => WebSocket
 
 const defaultSocketFactory: SocketFactory = (url) => new WebSocket(url)
 
-const METHOD_PATTERN = /^[a-zA-Z][\w.-]*$/
+/** 方法名白名单：legacy（session.x）或 Typert 命名空间（commands/list），禁 .. 逃逸。 */
+const METHOD_PATTERN = /^[a-zA-Z][\w.-]*(\/[a-zA-Z][\w.-]*)?$/
 const DEFAULT_TIMEOUT_MS = 30_000
 
 /**
@@ -63,7 +64,7 @@ export class KernelProxyService {
 
   /** 一元 RPC：POST /api/<method>。传输/信封错误抛 Error；业务错误走 result.error。 */
   async rpc(method: string, payload: unknown, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<KernelRpcResponse> {
-    if (!METHOD_PATTERN.test(method)) throw new Error(`invalid rpc method: ${method}`)
+    if (!METHOD_PATTERN.test(method) || method.includes('..')) throw new Error(`invalid rpc method: ${method}`)
     const request = makeClientRequest(method, payload)
     const raw = await this.post(apiPath(method), request, timeoutMs)
     const full = parseServerResponse(raw)

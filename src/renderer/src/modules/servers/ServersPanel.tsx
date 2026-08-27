@@ -4,6 +4,7 @@ import { useT } from '../../hooks'
 import { TerminalView } from './TerminalView'
 import { SftpPane } from './SftpPane'
 import type { SshAuthType, SshConnection } from '../../../../shared/types'
+import { useResizableWidth } from '../../lib/resizable'
 
 function ConnForm({ onDone }: { onDone(): void }) {
   const t = useT()
@@ -100,6 +101,7 @@ export function ServersPanel() {
   const refresh = useServers((state) => state.refresh)
   const [adding, setAdding] = useState(false)
   const [tab, setTab] = useState<'terminal' | 'sftp'>('terminal')
+  const sideSplit = useResizableWidth('ssh-side', 252)
 
   useEffect(() => { void refresh() }, [refresh])
 
@@ -107,7 +109,7 @@ export function ServersPanel() {
 
   return (
     <div className="flex-1 flex min-h-0">
-      <aside className="ssh-side">
+      <aside className="ssh-side" style={{ width: sideSplit.width }}>
         <div className="ssh-side-head">
           <span className="text-xs text-dim">{t('navServers')}</span>
           <button className="btn btn-ghost text-xs" onClick={() => setAdding((v) => !v)}>＋ {t('sshAdd')}</button>
@@ -120,6 +122,7 @@ export function ServersPanel() {
           )}
         </div>
       </aside>
+      {sideSplit.handle}
       <div className="flex-1 flex flex-col min-w-0">
         {error && <div className="conn-banner conn-banner-error">{error}</div>}
         {!activeId && <div className="editor-empty text-dim">{t('sshSelectHint')}</div>}

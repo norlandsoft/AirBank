@@ -84,6 +84,8 @@ export const Ipc = {
   termData: 'term:data',
   termResize: 'term:resize',
   termClose: 'term:close',
+  sessionAdminDelete: 'session-admin:delete',
+  dialogPickDirectory: 'dialog:pick-directory',
 } as const
 
 /** 主进程 → 渲染层广播事件通道。 */

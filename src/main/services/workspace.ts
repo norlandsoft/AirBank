@@ -14,8 +14,13 @@ export interface WorkspaceChangeEvent {
 
 const MAX_READ_BYTES = 2 * 1024 * 1024
 const WALK_CAP = 8000
-/** 树/遍历双向忽略的目录名（噪音与巨型目录）。 */
-const IGNORE = new Set(['node_modules', '.git', 'dist', 'release', 'out', 'build', '.next', '.cache', 'coverage', '.dsh', '.idea', '.vscode'])
+/** 树/遍历双向忽略的目录名（噪音与巨型目录；target 类构建产物会耗尽 fd）。 */
+const IGNORE = new Set([
+  'node_modules', '.git', 'dist', 'release', 'out', 'build', '.next', '.nuxt', '.cache', 'coverage',
+  '.dsh', '.idea', '.vscode',
+  // 构建产物目录（Rust/Java/嵌入式等，可达数万文件）
+  'target', 'vendor', '.turbo', '.gradle', 'DerivedData', 'Pods', 'cmake-build-debug', 'cmake-build-release',
+])
 
 const toRel = (root: string, abs: string): string => path.relative(root, abs).split(path.sep).join('/')
 
@@ -58,6 +63,8 @@ export class WorkspaceService {
     const root = this.requireRoot()
     this.watcher = watch(root, {
       ignoreInitial: true,
+      // 大目录防护：忽略目录外的深层不递归（防 fd 耗尽，兼顾常规项目深度）
+      depth: 12,
       awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 50 },
       ignored: (target) => target.split(/[/\\]/).some((segment) => IGNORE.has(segment)),
     })

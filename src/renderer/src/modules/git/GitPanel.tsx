@@ -5,6 +5,7 @@ import { useT } from '../../hooks'
 import { bridge } from '../../bridge'
 import { DiffText } from './DiffText'
 import type { GitFileStatus } from '../../../../shared/types'
+import { useResizableWidth } from '../../lib/resizable'
 
 const STATE_LABEL: Record<GitFileStatus['state'], string> = {
   modified: 'M', added: 'A', deleted: 'D', renamed: 'R', untracked: 'U', conflicted: 'C',
@@ -46,6 +47,7 @@ export function GitPanel() {
   const root = useIde((state) => state.root)
   const [message, setMessage] = useState('')
   const [branchDraft, setBranchDraft] = useState<string | null>(null)
+  const sideSplit = useResizableWidth('git-side', 280)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => { void refresh() }, [refresh, root])
@@ -70,7 +72,7 @@ export function GitPanel() {
 
   return (
     <div className="flex-1 flex min-h-0">
-      <aside className="git-side">
+      <aside className="git-side" style={{ width: sideSplit.width }}>
         <div className="git-branch-row">
           <select
             className="input git-branch-select"
@@ -141,6 +143,7 @@ export function GitPanel() {
           </div>
         )}
       </aside>
+      {sideSplit.handle}
       <div className="flex-1 flex flex-col min-w-0">
         {error && <div className="conn-banner conn-banner-error">{error}</div>}
         <DiffText diff={diffText} />

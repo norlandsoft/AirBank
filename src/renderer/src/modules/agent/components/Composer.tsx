@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAgent } from '../store'
 import { useT } from '../../../hooks'
 import { fuzzyFilter } from '../../../lib/fuzzy'
+import { AttachButton, ModelPicker, AccessPicker } from './pickers'
 
 interface AttachedImage {
   mediaType: 'image/png' | 'image/jpeg' | 'image/webp' | 'image/gif'
@@ -51,33 +52,6 @@ function readImage(file: File): Promise<AttachedImage> {
   })
 }
 
-/** 模型选择器：session.models 的 current + routable 列表。 */
-function ModelSelect() {
-  const models = useAgent((state) => state.models)
-  const selectModel = useAgent((state) => state.selectModel)
-  if (!models || !Array.isArray(models.routable) || models.routable.length === 0) return null
-  const currentValue = models.current ? `${models.current.provider}/${models.current.model}` : ''
-  return (
-    <select
-      className="input model-select"
-      value={currentValue}
-      onChange={(event) => {
-        const [provider, model] = event.target.value.split('/')
-        if (provider && model) void selectModel(provider, model)
-      }}
-    >
-      {models.current && !models.routable.some((r) => r.provider === models.current?.provider && r.model === models.current?.model) && (
-        <option value={currentValue}>{currentValue}</option>
-      )}
-      {models.routable.map((entry) => (
-        <option key={`${entry.provider}/${entry.model}`} value={`${entry.provider}/${entry.model}`}>
-          {entry.provider}/{entry.model}
-        </option>
-      ))}
-    </select>
-  )
-}
-
 /** 输入区：斜杠命令面板 + 图片附件 + 自适应高度；Enter 发送 / Shift+Enter 换行。 */
 export function Composer() {
   const t = useT()
@@ -119,7 +93,7 @@ export function Composer() {
   }
 
   const submit = (): void => {
-    if (!activeSessionId || (text.trim().length === 0 && images.length === 0)) return
+    if (text.trim().length === 0 && images.length === 0) return
     void send(text, images)
     setText('')
     setImages([])
@@ -153,13 +127,13 @@ export function Composer() {
           ))}
         </div>
       )}
+      <div className="composer-card">
       <textarea
         ref={areaRef}
         className="composer-input"
         rows={1}
-        placeholder={activeSessionId ? t('agentPlaceholder') : t('agentNeedSession')}
+        placeholder={activeSessionId ? t('agentPlaceholder') : t('startPlaceholder')}
         value={text}
-        disabled={!activeSessionId}
         onChange={(event) => setText(event.target.value)}
         onPaste={(event) => {
           const files = [...event.clipboardData.files]
@@ -190,19 +164,22 @@ export function Composer() {
         }}
       />
       <div className="composer-bar">
-        <ModelSelect />
+        <AttachButton onAttach={attachFiles} />
+        <ModelPicker />
+        <AccessPicker />
         <div className="flex-1" />
         {running ? (
           <button className="btn" title={t('agentStopTitle')} onClick={() => void cancelActive()}>⏹ {t('agentStopTitle')}</button>
         ) : (
           <button
             className="btn btn-primary"
-            disabled={!activeSessionId || sending || (text.trim().length === 0 && images.length === 0)}
+            disabled={sending || (text.trim().length === 0 && images.length === 0)}
             onClick={submit}
           >
             {t('agentSend')}
           </button>
         )}
+      </div>
       </div>
     </div>
   )

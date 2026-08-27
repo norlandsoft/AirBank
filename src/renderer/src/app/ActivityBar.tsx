@@ -36,7 +36,7 @@ export function ActivityBar() {
       title={t(item.label as Parameters<typeof t>[0])}
       onClick={() => setView(item.id)}
     >
-      {item.icon({ size: 19 })}
+      {item.icon({ size: 21 })}
     </button>
   )
   return (

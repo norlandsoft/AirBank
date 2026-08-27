@@ -4,7 +4,7 @@ import { useAgent } from '../store'
 import { useT } from '../../../hooks'
 import type { TimelineItem } from '../model'
 import { BlocksView } from './BlocksView'
-import { ToolCard } from './ToolCard'
+import { FileToolCard, ToolStatusLine } from './ToolCard'
 import { ImageBlock } from './ImageBlock'
 
 /** 用户消息内容渲染（text 段 + image 附件块）。 */
@@ -42,7 +42,13 @@ function Item({ item, running }: { item: TimelineItem; running: boolean }) {
     case 'tool':
       return (
         <div className="msg-row">
-          <ToolCard item={item} running={running} />
+          <FileToolCard item={item} running={running} />
+        </div>
+      )
+    case 'tool-status':
+      return (
+        <div className="msg-row">
+          <ToolStatusLine item={item} />
         </div>
       )
     case 'notice':

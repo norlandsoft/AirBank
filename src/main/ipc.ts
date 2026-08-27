@@ -162,5 +162,14 @@ export function registerIpc(ctx: IpcContext): void {
   handle(Ipc.termResize, (termId: string, cols: number, rows: number) => services.terminal.resize(termId, cols, rows))
   handle(Ipc.termClose, (termId: string) => services.terminal.close(termId))
 
+  handle(Ipc.sessionAdminDelete, (sessionId: string) => services.sessionAdmin.deleteSession(sessionId))
+
+  handle(Ipc.dialogPickDirectory, async () => {
+    const win = ctx.getWindow()
+    const options = { properties: ['openDirectory', 'createDirectory'] as Array<'openDirectory' | 'createDirectory'> }
+    const result = win ? await dialog.showOpenDialog(win, options) : await dialog.showOpenDialog(options)
+    return result.canceled || result.filePaths.length === 0 ? null : result.filePaths[0]
+  })
+
   handle(Ipc.appQuit, () => ctx.quit())
 }

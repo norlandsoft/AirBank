@@ -146,6 +146,10 @@ const api: DesktopApi = {
   onRuntimeChanged: (listener) => on(Events.runtimeChanged, listener),
   onSettingsChanged: (listener) => on(Events.settingsChanged, listener),
   onNativeTheme: (listener) => on(Events.nativeTheme, listener),
+  dialogPickDirectory: () => invoke(Ipc.dialogPickDirectory),
+  sessionAdmin: {
+    delete: (sessionId) => invoke(Ipc.sessionAdminDelete, sessionId),
+  },
 }
 
 contextBridge.exposeInMainWorld('dshDesktop', api)

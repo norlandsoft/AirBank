@@ -4,6 +4,7 @@ import { useT } from '../../hooks'
 import { FileTree } from './FileTree'
 import { EditorView } from './EditorView'
 import { IconFolder } from '../../icons'
+import { useResizableWidth } from '../../lib/resizable'
 
 /** IDE 面板：未设 root → 引导选择；否则 文件树 + 编辑器。 */
 export function IdePanel() {
@@ -26,9 +27,11 @@ export function IdePanel() {
     )
   }
 
+  const treeSplit = useResizableWidth('ide-tree', 224)
   return (
     <div className="flex-1 flex min-h-0">
-      <FileTree />
+      <div style={{ width: treeSplit.width, flexShrink: 0, display: 'flex', minWidth: 0 }}><FileTree /></div>
+      {treeSplit.handle}
       <div className="flex-1 flex flex-col min-w-0">
         {error && <div className="conn-banner conn-banner-error">{error}</div>}
         <EditorView />

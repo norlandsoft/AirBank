@@ -4,6 +4,7 @@ import { useIde } from '../ide/store'
 import { useT } from '../../hooks'
 import { bridge } from '../../bridge'
 import type { CiRunView, CiStepState, GhRun } from '../../../../shared/types'
+import { useResizableWidth } from '../../lib/resizable'
 
 const STEP_ICON: Record<CiStepState, string> = {
   pending: '○', running: '◐', success: '●', failed: '✗', cancelled: '⊘', skipped: '—',
@@ -93,8 +94,10 @@ export function CicdPanel() {
   const run = useCicd((state) => state.run)
   const selectRun = useCicd((state) => state.selectRun)
   const root = useIde((state) => state.root)
+  const sideSplit = useResizableWidth('ci-side', 264)
 
   useEffect(() => {
+    if (!root) return
     void refresh()
     void refreshGithub()
     const timer = setInterval(() => void refreshGithub(), 60_000)
@@ -113,7 +116,7 @@ export function CicdPanel() {
 
   return (
     <div className="flex-1 flex min-h-0">
-      <aside className="ci-side">
+      <aside className="ci-side" style={{ width: sideSplit.width }}>
         <div className="ci-side-head text-xs text-dim">{t('ciPipelines')}</div>
         {pipelines.map((pipeline) => {
           const last = lastRunByPipeline.get(pipeline.id)
@@ -156,6 +159,7 @@ export function CicdPanel() {
           </>
         )}
       </aside>
+      {sideSplit.handle}
       <div className="flex-1 flex flex-col min-w-0">
         {error && <div className="conn-banner conn-banner-error">{error}</div>}
         {activeRun ? <RunDetail run={activeRun} /> : (

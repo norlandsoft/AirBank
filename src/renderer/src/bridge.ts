@@ -134,6 +134,10 @@ function mockApi(): DesktopApi {
       close: async () => undefined,
     },
     onTermEvent: () => noop,
+    dialogPickDirectory: async () => null,
+    sessionAdmin: {
+      delete: async () => ({ removedDirs: 0, scrubbed: false }),
+    },
     quit: async () => undefined,
     onServerStatus: () => noop,
     onLog: () => noop,

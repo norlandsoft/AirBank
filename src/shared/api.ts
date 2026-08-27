@@ -166,6 +166,13 @@ export interface DesktopApi {
   onTermEvent(listener: (event:
     | { type: 'term-data'; termId: string; data: string }
     | { type: 'term-exit'; termId: string; code: number | null }) => void): () => void
+  /** 通用目录选择器（原生对话框；取消返回 null）。 */
+  dialogPickDirectory(): Promise<string | null>
+  /** 会话管理（内核 API 之外的桌面端操作）。 */
+  sessionAdmin: {
+    /** 真删除：停内核 → 删存储 + 擦洗注册表 → 重启。 */
+    delete(sessionId: string): Promise<{ removedDirs: number; scrubbed: boolean }>
+  }
   quit(): Promise<void>
   onServerStatus(listener: (status: ServerStatus) => void): () => void
   onLog(listener: (entry: LogEntry) => void): () => void

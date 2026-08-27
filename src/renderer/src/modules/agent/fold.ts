@@ -123,6 +123,23 @@ function mergeItem(prev: TimelineItem, next: TimelineItem): TimelineItem {
   return next
 }
 
+// ---- 工具显示策略（用户规则：write/edit 持久显示；其余瞬时覆盖） ----
+
+/** 持久显示的工具（正常显示名称与文件名）。 */
+const PERSISTENT_TOOLS = new Set(['write', 'edit'])
+
+/** 瞬时状态行固定 id：新工具调用/新结果覆盖上一条，时间线不累积。 */
+const TRANSIENT_TOOL_ID = 'tool:transient'
+
+function removeTransient(items: TimelineItem[], byId: ReadonlyMap<string, number>): { items: TimelineItem[]; byId: Map<string, number> } {
+  const index = byId.get(TRANSIENT_TOOL_ID)
+  if (index === undefined) return { items, byId: new Map(byId) }
+  const nextItems = items.filter((item) => item.id !== TRANSIENT_TOOL_ID)
+  const nextById = new Map<string, number>()
+  nextItems.forEach((item, i) => nextById.set(item.id, i))
+  return { items: nextItems, byId: nextById }
+}
+
 // ---- 会话事件折叠 ----
 
 interface UserMessageData {
@@ -148,7 +165,9 @@ export function applySessionEvent(slice: SessionSlice, event: SessionEventEnvelo
         kind: 'user', id, seq: event.seq, time: event.time,
         content: message.content ?? [], source: message.source ?? {},
       }
-      const merged = upsert(slice.items, slice.byId, item)
+      // 新消息覆盖瞬时工具状态
+      const cleared = removeTransient(slice.items, slice.byId)
+      const merged = upsert(cleared.items, cleared.byId, item)
       next = { ...slice, items: merged.items, byId: merged.byId }
       break
     }
@@ -171,20 +190,34 @@ export function applySessionEvent(slice: SessionSlice, event: SessionEventEnvelo
         turn, step, blocks: toAssistantBlocks(message.content ?? []), interrupted: interrupted === true, usage,
       }
       const merged = upsert(slice.items, slice.byId, item)
+      // 助手消息定稿：覆盖瞬时工具状态
+      const cleared = removeTransient(merged.items, merged.byId)
       next = {
-        ...slice, items: merged.items, byId: merged.byId,
+        ...slice, items: cleared.items, byId: cleared.byId,
         partial: slice.partial && slice.partial.turn === turn && slice.partial.step === step ? null : slice.partial,
       }
       break
     }
     case 'tool/call': {
       const { turn, step, callId, name, arguments: argsRaw } = data as { turn: number; step: number; callId: string; name: string; arguments: string }
-      const item: TimelineItem = {
-        kind: 'tool', id: `tool:${callId}`, seq: event.seq, time: event.time, turn, step,
-        callId, name, argumentsRaw: argsRaw, view: view?.for === 'call' ? view : undefined,
+      if (PERSISTENT_TOOLS.has(name)) {
+        // write/edit：持久条目（名称 + 文件名正常显示）
+        const item: TimelineItem = {
+          kind: 'tool', id: `tool:${callId}`, seq: event.seq, time: event.time, turn, step,
+          callId, name, argumentsRaw: argsRaw, view: view?.for === 'call' ? view : undefined,
+        }
+        const merged = upsert(slice.items, slice.byId, item)
+        next = { ...slice, items: merged.items, byId: merged.byId }
+      } else {
+        // 其它工具：瞬时状态行（覆盖上一条，不累积）
+        const cleared = removeTransient(slice.items, slice.byId)
+        const item: TimelineItem = {
+          kind: 'tool-status', id: TRANSIENT_TOOL_ID, seq: event.seq, time: event.time,
+          callId, name, argumentsRaw: argsRaw, state: 'running',
+        }
+        const merged = upsert(cleared.items, cleared.byId, item)
+        next = { ...slice, items: merged.items, byId: merged.byId }
       }
-      const merged = upsert(slice.items, slice.byId, item)
-      next = { ...slice, items: merged.items, byId: merged.byId }
       break
     }
     case 'tool/result': {
@@ -197,17 +230,36 @@ export function applySessionEvent(slice: SessionSlice, event: SessionEventEnvelo
       const block = message?.content?.[0]
       const callId = block?.toolCallId !== undefined ? String(block.toolCallId) : undefined
       if (!callId) return slice
-      const item: TimelineItem = {
-        kind: 'tool', id: `tool:${callId}`, seq: event.seq, time: event.time,
-        turn: Number(data.turn ?? 0), step: Number(data.step ?? 0),
-        callId, name: '', argumentsRaw: '',
-        result: { content: block?.content ?? [], meta },
-        error,
-        view: view?.for === 'result' ? view : undefined,
+
+      // ① 持久条目（write/edit 在 call 时已建档）：始终合并结果
+      if (slice.byId.has(`tool:${callId}`)) {
+        const item: TimelineItem = {
+          kind: 'tool', id: `tool:${callId}`, seq: event.seq, time: event.time,
+          turn: Number(data.turn ?? 0), step: Number(data.step ?? 0),
+          callId, name: '', argumentsRaw: '',
+          result: { content: block?.content ?? [], meta },
+          error,
+          view: view?.for === 'result' ? view : undefined,
+        }
+        const merged = upsert(slice.items, slice.byId, item)
+        next = { ...slice, items: merged.items, byId: merged.byId }
+        break
       }
-      const merged = upsert(slice.items, slice.byId, item)
-      next = { ...slice, items: merged.items, byId: merged.byId }
-      break
+      // ② 瞬时条目：结果仅更新"当前"那一条（旧调用的结果不回流覆盖新状态）
+      const transientIndex = slice.byId.get(TRANSIENT_TOOL_ID)
+      const transient = transientIndex !== undefined ? slice.items[transientIndex] : undefined
+      if (transientIndex !== undefined && transient?.kind === 'tool-status' && transient.callId === callId) {
+        const nextItems = [...slice.items]
+        nextItems[transientIndex] = {
+          ...transient,
+          seq: event.seq,
+          state: error ? 'error' : 'done',
+          errorText: error ? `${error.name}: ${error.code}` : undefined,
+        }
+        return { ...slice, items: nextItems, lastSeq: Math.max(slice.lastSeq, event.seq), version: slice.version + 1 }
+      }
+      // ③ 无条目可挂（旧调用已被覆盖）：仅推进 lastSeq
+      return slice.lastSeq < event.seq ? { ...slice, lastSeq: event.seq } : slice
     }
     case 'todo/write': {
       const projections = new Map(slice.projections)

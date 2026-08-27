@@ -13,8 +13,8 @@ export function TerminalView({ connId }: { connId: string }) {
   useEffect(() => {
     if (!hostRef.current) return
     const term = new Terminal({
-      fontFamily: "'SF Mono', ui-monospace, Menlo, Consolas, monospace",
-      fontSize: 12.5,
+      fontFamily: "'IBM Plex Mono', 'PingFang SC', 'SF Mono', ui-monospace, Menlo, Consolas, monospace",
+      fontSize: 15,
       cursorBlink: true,
       theme: {
         background: '#101012', foreground: '#ececee', cursor: '#4d6bfe',

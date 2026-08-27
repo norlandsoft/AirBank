@@ -53,10 +53,10 @@ export function editorTheme(dark: boolean): Extension {
       backgroundColor: 'var(--bg-base)',
       color: 'var(--text)',
       height: '100%',
-      fontSize: '12.5px',
+      fontSize: '15px',
     },
     '.cm-content': {
-      fontFamily: "'SF Mono', ui-monospace, Menlo, Consolas, monospace",
+      fontFamily: "'IBM Plex Mono', 'PingFang SC', 'SF Mono', ui-monospace, Menlo, Consolas, monospace",
       caretColor: 'var(--accent)',
     },
     '.cm-gutters': {

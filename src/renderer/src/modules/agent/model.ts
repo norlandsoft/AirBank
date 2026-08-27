@@ -31,6 +31,13 @@ export type TimelineItem =
     error?: { name: string; code: string }
     view?: ToolEventView
   }
+  | {
+    /** 瞬时工具状态行：仅最新一条（新工具/新消息覆盖上一条，不累积）。 */
+    kind: 'tool-status'; id: string; seq: number; time: number
+    callId: string; name: string; argumentsRaw: string
+    state: 'running' | 'done' | 'error'
+    errorText?: string
+  }
   | { kind: 'notice'; id: string; seq: number; time: number; text: string }
 
 /** 待应答审批（rpcId 稳定，重连重放 → Map 幂等重建）。 */

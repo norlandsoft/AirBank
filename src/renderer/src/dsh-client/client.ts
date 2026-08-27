@@ -168,6 +168,14 @@ export class DshClient {
     return this.rpcWithId('session.prompt', payload)
   }
   sessionCancel(sessionId: string): Promise<{ accepted: true }> { return this.rpc('session.cancel', { sessionId }) }
+  /** 重命名会话（标题走 title 投影回流）。 */
+  sessionRename(sessionId: string, title: string): Promise<{ title: string; seq: number }> {
+    return this.rpc('session.rename', { sessionId, title })
+  }
+  /** 存档会话（从列表隐藏；v1 内核无 unarchive RPC）。 */
+  archiveSession(sessionId: string): Promise<{ archivedSessionIds: string[] }> {
+    return this.rpc('workspace.archiveSession', { sessionId })
+  }
   sessionModels(sessionId: string): Promise<unknown> { return this.rpc('session.models', { sessionId }) }
   sessionSelectModel(payload: { sessionId: string; provider: string; model: string; reasoningEffort?: string }): Promise<unknown> {
     return this.rpc('session.selectModel', payload)
@@ -181,6 +189,41 @@ export class DshClient {
   /** 斜杠命令清单（Typert：payload={args:{agentId}}，curl 实测）。 */
   commandsList(sessionId: string): Promise<{ name: string; description?: string; input?: { hint?: string; images?: boolean } }[]> {
     return this.rpc('commands/list', { args: { agentId: sessionId } })
+  }
+
+  // ---- 设置面板三域（模型/智能体/权限，均 loopback 可用） ----
+
+  llmProviders(): Promise<{ providers: { provider: string; displayName: string; active: boolean; declared?: boolean; settingsNs?: string }[] }> {
+    return this.rpc('llm.providers', {})
+  }
+  llmModels(): Promise<{ groups: { id: string; name: string; models: { id: string; name: string; reasoning?: { efforts: { id: string; name: string }[]; defaultEffort?: string } }[] }[] }> {
+    return this.rpc('llm.models', {})
+  }
+  credentialsDescribe(refs: string[]): Promise<{ credentials: Record<string, { configured: boolean; source?: string; writable: boolean }> }> {
+    return this.rpc('credentials.describe', { refs })
+  }
+  credentialsSet(ref: string, value: string): Promise<unknown> { return this.rpc('credentials.set', { ref, value }) }
+  credentialsUnset(ref: string): Promise<unknown> { return this.rpc('credentials.unset', { ref }) }
+  agentPresetList(): Promise<{ presets: { id: string; trust: string; isDefault: boolean; name: string; description?: string }[] }> {
+    return this.rpc('agentPreset.list', {})
+  }
+  agentPresetSelect(sessionId: string, agentPreset: string): Promise<unknown> {
+    return this.rpc('agentPreset.select', { sessionId, agentPreset })
+  }
+  agentPresetCopy(agentPreset: string): Promise<unknown> { return this.rpc('agentPreset.copy', { agentPreset }) }
+  agentPresetRemove(agentPreset: string): Promise<unknown> { return this.rpc('agentPreset.remove', { agentPreset }) }
+
+  /** settings 用户层合并写（loopback-only；patch 深合并进 providers 等映射）。 */
+  settingsUpdate(ns: string, patch: Record<string, unknown>): Promise<unknown> {
+    return this.rpc('settings.update', { ns, patch })
+  }
+  /** settings 路径级编辑（unset 删除供应商等子键）。 */
+  settingsMutate(ns: string, ops: ({ op: 'set'; path: string[]; value: unknown } | { op: 'unset'; path: string[] })[]): Promise<unknown> {
+    return this.rpc('settings.mutate', { ns, ops })
+  }
+  /** settings 描述（命名空间清单 + redacted 分层值）。 */
+  settingsDescribe(): Promise<{ writable: boolean; namespaces: { ns: string; value?: unknown; user?: unknown }[] }> {
+    return this.rpc('settings.describe', {})
   }
 
   /** 审批应答：rpcId 来自 approval/requested 帧（稳定、重连重放 → 应答天然幂等）。 */

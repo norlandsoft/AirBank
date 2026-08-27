@@ -1,7 +1,7 @@
 import { useApp } from '../store'
 import { useT } from '../hooks'
 import { bridge, inElectron } from '../bridge'
-import { IconMinimize, IconMaximize, IconClose, IconExternal, IconCommand } from '../icons'
+import { IconMinimize, IconMaximize, IconClose, IconExternal, IconCommand, IconLogo } from '../icons'
 
 /** 状态点颜色映射。 */
 export function dotClass(state: string | undefined): string {
@@ -26,6 +26,7 @@ export function TitleBar({ onOpenPalette }: { onOpenPalette(): void }) {
   return (
     <div className="titlebar">
       <div className="flex items-center gap-2" style={{ paddingLeft: isMac ? 66 : 2 }}>
+        <span className="titlebar-brand titlebar-no-drag"><IconLogo size={18} /><span className="titlebar-name">AirCode</span></span>
         <span className="pill titlebar-no-drag">
           <span className={dotClass(server?.state)} />
           {stateText[server?.state ?? 'stopped'] ?? server?.state}

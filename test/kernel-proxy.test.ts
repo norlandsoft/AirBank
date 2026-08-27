@@ -90,6 +90,12 @@ describe('KernelProxyService', () => {
 
   it('rpc：非法方法名拒绝', async () => {
     await expect(proxy.rpc('../etc', {})).rejects.toThrow('invalid rpc method')
+    await expect(proxy.rpc('a/../b', {})).rejects.toThrow('invalid rpc method')
+  })
+
+  it('rpc：Typert 命名空间方法（commands/list）允许通过', async () => {
+    await proxy.rpc('commands/list', { args: { agentId: 's' } }).catch(() => undefined)
+    expect(stub.requests.at(-1)?.path).toBe('/api/commands/list')
   })
 
   it('rpc：HTTP 非 2xx 抛传输错误', async () => {
