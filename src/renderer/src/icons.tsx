@@ -4,7 +4,8 @@
  */
 import type { SVGProps } from 'react'
 import {
-  Check, Code2, Command, Cpu, Download, ExternalLink, FileText, Folder, GitBranch, Info, Loader2,
+  Check, ChevronDown, Code2, Command, Cpu, Download, ExternalLink, FileText, Folder, FolderGit2,
+  GitBranch, Info, Loader2,
   MessageSquare, Minus, PanelLeft, Play, Plus, Puzzle, RefreshCw, RotateCw, ScrollText,
   Search, Server, Settings, Square, Trash2, Users, Workflow, X,
 } from 'lucide-react'
@@ -46,6 +47,8 @@ export const IconPlus = make(Plus)
 export const IconCheck = make(Check)
 export const IconDownload = make(Download)
 export const IconTrash = make(Trash2)
+export const IconChevronDown = make(ChevronDown)
+export const IconRepo = make(FolderGit2)
 
 /** 加载 Spinner（lucide Loader2 + 旋转动画）。 */
 export function IconSpinner({ size = 17 }: { size?: number }) {

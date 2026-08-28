@@ -1,7 +1,7 @@
 import type {
   AppInfo, AppSettings, BootState, CiEvent, CiPipelineInfo, CiRunView, CoreInfo, FileRead, FormatResult, FsEntry,
-  GhRun, GitBranchesView, GitCommitInfo,
-  GitStatusView, InstallPlan, KernelStatus, LogEntry,
+  GhRun, GitBranchesView, GitCommitFile, GitCommitInfo,
+  GitReposView, GitStatusView, InstallPlan, KernelStatus, LogEntry,
   PluginInfo, ProfileInfo, RuntimeStatus, ServerStatus, SftpEntry, SshConnection, SshConnState,
   SshStatusEvent, SshTransfer, WalkResult, WorkspaceChangeEvent,
 } from './types'
@@ -97,7 +97,7 @@ export interface DesktopApi {
     format(rel: string, content: string): Promise<FormatResult>
   }
   onWorkspaceChange(listener: (event: WorkspaceChangeEvent) => void): () => void
-  /** Git 仓库（基于 IDE 工作区；非仓库时返回 null）。 */
+  /** Git 仓库（多仓库列表 + IDE 工作区回落；非仓库时返回 null）。 */
   git: {
     status(): Promise<GitStatusView | null>
     diff(relPath: string | null, staged: boolean): Promise<string>
@@ -108,6 +108,25 @@ export interface DesktopApi {
     branches(): Promise<GitBranchesView | null>
     checkout(name: string): Promise<void>
     createBranch(name: string): Promise<void>
+    /** 仓库列表（含生效仓库与来源）。 */
+    repos(): Promise<GitReposView>
+    /** 添加本地目录为仓库（校验后激活；非仓库抛错）。 */
+    addRepo(path: string): Promise<GitReposView>
+    /** 克隆远端仓库到 parentDir 下并激活。 */
+    cloneRepo(url: string, parentDir: string): Promise<GitReposView>
+    /** 从列表移除（若激活项被移除则回落工作区派生）。 */
+    removeRepo(path: string): Promise<GitReposView>
+    /** 切换激活仓库；null = 回落 IDE 工作区派生。 */
+    activateRepo(path: string | null): Promise<GitReposView>
+    fetch(): Promise<void>
+    pull(): Promise<void>
+    push(): Promise<void>
+    /** 放弃更改：已跟踪 → checkout 还原；未跟踪 → 删除。破坏性操作。 */
+    discard(paths: string[]): Promise<void>
+    /** 某提交变更的文件列表。 */
+    commitFiles(hash: string): Promise<GitCommitFile[]>
+    /** 某提交的 diff（可选限定单文件）。 */
+    commitDiff(hash: string, relPath?: string): Promise<string>
   }
   /** TypeScript 语言服务器（主进程托管；消息为无头 JSON 字符串）。 */
   lsp: {

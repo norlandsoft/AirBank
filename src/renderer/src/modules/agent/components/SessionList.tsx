@@ -3,12 +3,6 @@ import { useAgent } from '../store'
 import { useT } from '../../../hooks'
 import { bridge } from '../../../bridge'
 
-function formatTime(updatedAt: number): string {
-  const date = new Date(updatedAt)
-  const pad = (n: number): string => String(n).padStart(2, '0')
-  return `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
-
 /** 会话标题：已装载切片读 live 投影，否则读摘要投影快照。 */
 function useSessionTitle(sessionId: string, fallback: unknown): string {
   const t = useT()
@@ -90,9 +84,8 @@ function SessionMenu({ sessionId, onRename }: { sessionId: string; onRename(): v
   )
 }
 
-function SessionRow({ sessionId, updatedAt, running, projections }: {
+function SessionRow({ sessionId, running, projections }: {
   sessionId: string
-  updatedAt: number
   running: boolean
   projections?: Record<string, unknown>
 }) {
@@ -121,7 +114,6 @@ function SessionRow({ sessionId, updatedAt, running, projections }: {
       <button className="session-row-main" onClick={() => void openSession(sessionId)}>
         <span className={`session-dot${running ? ' session-dot-running' : ''}`} />
         <span className="session-title">{title}</span>
-        <span className="session-time">{formatTime(updatedAt)}</span>
       </button>
       <SessionMenu sessionId={sessionId} onRename={() => setRenaming(true)} />
     </div>
@@ -235,7 +227,6 @@ export function SessionList() {
               <SessionRow
                 key={s.sessionId}
                 sessionId={s.sessionId}
-                updatedAt={s.updatedAt}
                 running={s.running}
                 projections={s.projections}
               />

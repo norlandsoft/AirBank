@@ -272,6 +272,46 @@ export function applySessionEvent(slice: SessionSlice, event: SessionEventEnvelo
       next = { ...slice, projections }
       break
     }
+    case 'command/run': {
+      // 斜杠命令生命周期（commands/execute 路径）：以 notice 条目呈现命令行
+      const { commandId, name, args } = data as { commandId?: string; name?: string; args?: string }
+      if (typeof commandId !== 'string' || typeof name !== 'string') {
+        return slice.lastSeq < event.seq ? { ...slice, lastSeq: event.seq } : slice
+      }
+      const item: TimelineItem = {
+        kind: 'notice', id: `command:${commandId}`, seq: event.seq, time: event.time,
+        text: args ? `/${name} ${args}` : `/${name}`,
+      }
+      const merged = upsert(slice.items, slice.byId, item)
+      next = { ...slice, items: merged.items, byId: merged.byId }
+      break
+    }
+    case 'command/done': {
+      // 结果并入同一条目：成功 → " → text"（无文本则 ✓）；失败 → " ✗ text"
+      const { commandId, kind, text } = data as { commandId?: string; kind?: string; text?: string }
+      if (typeof commandId !== 'string') {
+        return slice.lastSeq < event.seq ? { ...slice, lastSeq: event.seq } : slice
+      }
+      const id = `command:${commandId}`
+      const suffix = kind === 'error' ? ` ✗ ${text ?? ''}`.trimEnd() : text ? ` → ${text}` : ' ✓'
+      const index = slice.byId.get(id)
+      if (index !== undefined) {
+        const prev = slice.items[index]
+        const nextItems = [...slice.items]
+        nextItems[index] = {
+          kind: 'notice', id, seq: event.seq, time: event.time,
+          text: `${prev.kind === 'notice' ? prev.text : ''}${suffix}`,
+        }
+        next = { ...slice, items: nextItems }
+        break
+      }
+      // 无 run 记录（历史窗口裁掉 run 等）：有文本则补一条独立结果
+      if (!text) return slice.lastSeq < event.seq ? { ...slice, lastSeq: event.seq } : slice
+      const item: TimelineItem = { kind: 'notice', id, seq: event.seq, time: event.time, text: kind === 'error' ? `✗ ${text}` : text }
+      const merged = upsert(slice.items, slice.byId, item)
+      next = { ...slice, items: merged.items, byId: merged.byId }
+      break
+    }
     default:
       // request/header、request/context、session/end-seed、session/title、permission/preset 等：
       // 不进时间线（title 走 projection 帧）

@@ -23,6 +23,10 @@ export interface AppSettings {
   ideRoot: string
   /** 保存时格式化（prettier，项目配置优先）。 */
   formatOnSave: boolean
+  /** Git 模块维护的仓库列表（realpath 绝对路径）。 */
+  gitRepos: string[]
+  /** 当前激活的 Git 仓库（空串 = 回落 IDE 工作区派生）。 */
+  activeGitRepo: string
 }
 
 // ---- IDE 工作区（主进程 WorkspaceService 的共享契约） ----
@@ -79,13 +83,44 @@ export interface GitStatusView {
   ahead: number
   behind: number
   files: GitFileStatus[]
+  /** origin 远端 URL（无远端 → null）。 */
+  remote: string | null
+  /** 上次 fetch 时间戳（.git/FETCH_HEAD mtime；从未 fetch → null）。 */
+  lastFetch: number | null
 }
 
 export interface GitCommitInfo {
+  /** 完整 commit hash（短码由 UI 自行截取）。 */
   hash: string
   date: number
   message: string
   author: string
+}
+
+/** 单个提交内变更的文件（git show --name-status）。 */
+export interface GitCommitFile {
+  path: string
+  state: GitFileState
+}
+
+/** Git 模块维护的仓库条目。 */
+export interface GitRepoInfo {
+  /** 仓库根（realpath）。 */
+  path: string
+  /** 目录名。 */
+  name: string
+  /** 当前分支（读取失败 → ''）。 */
+  branch: string
+  /** 目录已不存在或不再是仓库。 */
+  missing: boolean
+}
+
+export interface GitReposView {
+  repos: GitRepoInfo[]
+  /** 生效仓库根；null = 无可用仓库。 */
+  active: string | null
+  /** active 来源：用户列表 / IDE 工作区派生。 */
+  activeSource: 'list' | 'workspace' | null
 }
 
 export interface GitBranchesView {

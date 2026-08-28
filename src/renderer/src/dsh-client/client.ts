@@ -1,7 +1,7 @@
 import {
-  parseHostFrame, parseMuxFrame,
+  parseHostFrame, parseMuxFrame, unwrapProjections,
   type ApprovalResponsePayload, type HistoryEntry, type HostDescription, type HostFrame,
-  type MuxFrame, type PromptContentPart, type RpcError, type RpcId, type RpcReceipt, type SessionSummary,
+  type MuxFrame, type ProjectionsEnvelope, type PromptContentPart, type RpcError, type RpcId, type RpcReceipt, type SessionSummary,
 } from '../../../shared/dsh/wire'
 import type { DshStreamEvent, DshStreamKind } from '../../../shared/api'
 import { mainProxyCarrier, type StreamCarrier, type UnaryCarrier } from './transport'
@@ -157,12 +157,18 @@ export class DshClient {
   }
 
   hostDescribe(): Promise<HostDescription> { return this.rpc('host.describe', {}) }
-  sessionList(): Promise<{ items: SessionSummary[] }> { return this.rpc('session.list', {}) }
+  /** 会话清单（投影信封解包为平铺键值：title/sessionStats/permissions…）。 */
+  async sessionList(): Promise<{ items: SessionSummary[] }> {
+    const raw = await this.rpc<{ items: (Omit<SessionSummary, 'projections'> & { projections?: ProjectionsEnvelope })[] }>('session.list', {})
+    return { items: raw.items.map((item) => ({ ...item, projections: unwrapProjections(item.projections) })) }
+  }
   sessionCreate(payload: { workspaceId?: string; cwd?: string; sessionId?: string; agentPreset?: string } = {}): Promise<{ sessionId: string; agentPreset?: string }> {
     return this.rpc('session.create', payload)
   }
-  sessionHistory(payload: { sessionId: string; beforeSeq?: number; maxMessages?: number }): Promise<{ events: HistoryEntry[]; hasMore: boolean; projections?: Record<string, unknown> }> {
-    return this.rpc('session.history', payload)
+  /** 历史尾页（投影信封解包为平铺键值，作为切片投影基线）。 */
+  async sessionHistory(payload: { sessionId: string; beforeSeq?: number; maxMessages?: number }): Promise<{ events: HistoryEntry[]; hasMore: boolean; projections?: Record<string, unknown> }> {
+    const raw = await this.rpc<{ events: HistoryEntry[]; hasMore: boolean; projections?: ProjectionsEnvelope }>('session.history', payload)
+    return { events: raw.events, hasMore: raw.hasMore, projections: unwrapProjections(raw.projections) }
   }
   sessionPrompt(payload: { sessionId: string; mode: 'queue' | 'steer'; content: PromptContentPart[]; clientTimeZone?: string }): Promise<{ rpcId: RpcId; value: { accepted: true; command?: { kind: 'success'; text?: string } } }> {
     return this.rpcWithId('session.prompt', payload)
@@ -189,6 +195,19 @@ export class DshClient {
   /** 斜杠命令清单（Typert：payload={args:{agentId}}，curl 实测）。 */
   commandsList(sessionId: string): Promise<{ name: string; description?: string; input?: { hint?: string; images?: boolean } }[]> {
     return this.rpc('commands/list', { args: { agentId: sessionId } })
+  }
+
+  /**
+   * 斜杠命令执行（Typert：payload={args:{agentId,line,images}}）。
+   * 对齐 dsh web 提交路径：命中即在内核执行（不进模型）；语法/名称未解析返回 undefined/null，
+   * 调用方据此回退为普通 session.prompt 消息。session.prompt 自身不拦截斜杠命令（apiproxy 实测）。
+   */
+  commandsExecute(
+    sessionId: string,
+    line: string,
+    images: { mediaType: 'image/png' | 'image/jpeg' | 'image/webp' | 'image/gif'; data: string; name?: string }[] = [],
+  ): Promise<{ commandId: string; result: { kind: 'success'; text?: string; sourceEventSeq?: number } | { kind: 'error'; text: string } } | undefined | null> {
+    return this.rpc('commands/execute', { args: { agentId: sessionId, line, images } })
   }
 
   // ---- 设置面板三域（模型/智能体/权限，均 loopback 可用） ----

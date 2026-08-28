@@ -20,6 +20,8 @@ export function defaultSettings(paths: AppPaths): AppSettings {
     activeProfile: 'web',
     ideRoot: '',
     formatOnSave: true,
+    gitRepos: [],
+    activeGitRepo: '',
   }
 }
 
@@ -41,6 +43,10 @@ export function sanitizeSettings(input: unknown, paths: AppPaths): AppSettings {
   if (typeof raw.activeProfile === 'string' && raw.activeProfile.length > 0) out.activeProfile = raw.activeProfile
   if (typeof raw.ideRoot === 'string') out.ideRoot = raw.ideRoot
   if (typeof raw.formatOnSave === 'boolean') out.formatOnSave = raw.formatOnSave
+  if (Array.isArray(raw.gitRepos)) {
+    out.gitRepos = raw.gitRepos.filter((item): item is string => typeof item === 'string' && item.length > 0)
+  }
+  if (typeof raw.activeGitRepo === 'string') out.activeGitRepo = raw.activeGitRepo
   return out
 }
 

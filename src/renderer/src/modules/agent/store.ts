@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { DshClient, DshRpcError, type ConnectionState } from '../../dsh-client/client'
 import { bridge } from '../../bridge'
 import { applyHistory, applyMuxFrame } from './fold'
+import { isSlashCommand, permissionDraft } from './commands'
 import { emptySlice, type SessionSlice } from './model'
 import type { HostDescription, PromptContentPart, SessionSummary } from '../../../../shared/dsh/wire'
 
@@ -83,6 +84,15 @@ export const useAgent = create<AgentState>((set, get) => {
     client.onState((connection) => set({ connection }))
     client.onMux(({ rpcId, frame }) => {
       if ('sessionId' in frame) patchSlice(frame.sessionId, (slice) => applyMuxFrame(slice, rpcId, frame))
+      // 标题投影同步进列表摘要：未打开的会话也在生成/重命名后即时换名
+      if (frame.type === 'session/projection' && frame.key === 'title') {
+        const title = typeof frame.value === 'string' && frame.value.length > 0 ? frame.value : undefined
+        set((state) => ({
+          sessions: state.sessions.map((s) => s.sessionId === frame.sessionId
+            ? { ...s, projections: { ...s.projections, title } }
+            : s),
+        }))
+      }
     })
     client.onHost(({ frame }) => {
       switch (frame.type) {
@@ -94,6 +104,8 @@ export const useAgent = create<AgentState>((set, get) => {
           set((state) => ({
             sessions: state.sessions.map((s) => s.sessionId === frame.sessionId ? { ...s, running: frame.running } : s),
           }))
+          // 回合结束 = 内核投影缓存的检查点（turn/end 强制写盘）：重拉清单让标题等摘要投影自愈
+          if (!frame.running) void get().refreshSessions()
           break
         default:
           break
@@ -210,6 +222,13 @@ export const useAgent = create<AgentState>((set, get) => {
       try {
         // 起始页：无活动会话 → 按草稿（cwd/preset）创建会话再发送
         if (!activeSessionId) {
+          // /permission <preset> 无会话可执行：存为访问权限草稿（同 AccessPicker 起始态），
+          // 创建会话时经 commands/execute 应用；不消费输入、不创建空会话
+          const draft = images.length === 0 ? permissionDraft(trimmed) : null
+          if (draft) {
+            set({ draftAccess: draft })
+            return
+          }
           const { draftCwd, draftPreset } = get()
           const created = await client.sessionCreate({
             ...(draftCwd ? { cwd: draftCwd } : {}),
@@ -219,7 +238,8 @@ export const useAgent = create<AgentState>((set, get) => {
           await get().refreshSessions()
           await get().openSession(created.sessionId)
           activeSessionId = created.sessionId
-          // 起始页草稿应用：模型/推理等级 → selectModel；访问权限 → /permission 命令
+          // 起始页草稿应用：模型/推理等级 → selectModel；访问权限 → commands/execute
+          //（session.prompt 不拦截斜杠命令，经 prompt 发送会原样进入模型上下文）
           const { draftModel, draftAccess, defaultAccess } = get()
           if (draftModel) {
             await client.sessionSelectModel({
@@ -227,13 +247,16 @@ export const useAgent = create<AgentState>((set, get) => {
             }).catch(() => undefined)
           }
           if (draftAccess && draftAccess !== defaultAccess) {
-            await client.sessionPrompt({
-              sessionId: activeSessionId, mode: 'queue',
-              content: [{ type: 'text', text: `/permission ${draftAccess}` }],
-              clientTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            }).catch(() => undefined)
+            await client.commandsExecute(activeSessionId, `/permission ${draftAccess}`).catch(() => undefined)
           }
           set({ draftModel: null, draftAccess: null })
+        }
+        // 斜杠命令：先经 commands/execute 裁决（对齐 dsh web：命中即内核执行、结果走 command/run|done 事件），
+        // 未命中（undefined/null）回退为普通消息；执行失败则报错、绝不降级为排队消息
+        if (isSlashCommand(trimmed)) {
+          const executed = await client.commandsExecute(activeSessionId, trimmed, images)
+            .catch((commandError) => { reportError(commandError); return undefined })
+          if (executed || get().error) return
         }
         const content: PromptContentPart[] = []
         if (trimmed.length > 0) content.push({ type: 'text', text: trimmed })

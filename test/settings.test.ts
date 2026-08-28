@@ -32,6 +32,16 @@ describe('sanitizeSettings', () => {
     expect(sanitizeSettings({ port: 65536 }, paths).port).toBe(3080)
     expect(sanitizeSettings({ port: 4000 }, paths).port).toBe(4000)
   })
+  it('gitRepos / activeGitRepo 清洗', () => {
+    const out = sanitizeSettings({ gitRepos: ['/a', 1, '', '/b'], activeGitRepo: '/a' }, paths)
+    expect(out.gitRepos).toEqual(['/a', '/b'])
+    expect(out.activeGitRepo).toBe('/a')
+  })
+  it('缺失 git 字段的旧数据回落默认（前向兼容）', () => {
+    const out = sanitizeSettings({ locale: 'en-US' }, paths)
+    expect(out.gitRepos).toEqual([])
+    expect(out.activeGitRepo).toBe('')
+  })
 })
 
 describe('SettingsService', () => {

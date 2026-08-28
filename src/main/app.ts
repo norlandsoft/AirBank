@@ -69,7 +69,7 @@ export function createDesktopApp(): DesktopApp {
   const setup = new SetupService(runtime, kernel, logger)
   const workspace = new WorkspaceService(logger)
   const format = new FormatService(workspace, logger)
-  const git = new GitService(workspace, logger)
+  const git = new GitService(workspace, settings, logger)
   const lsp = new LspService(workspace, logger)
   // safeStorage 加密盒在此注入（electron 仅出现在 app/ipc 层，service 保持可测）
   const cryptoBox: CryptoBox = {

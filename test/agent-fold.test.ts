@@ -231,3 +231,44 @@ describe('applyHistory', () => {
     expect(s.items).toHaveLength(4)
   })
 })
+
+describe('applySessionEvent：command 生命周期（commands/execute 路径）', () => {
+  it('command/run 产生 notice 条目（含参数）', () => {
+    const s = applySessionEvent(emptySlice('s1'), ev('command/run', { commandId: 'k1', name: 'permission', args: 'danger-full-access' }, 5))
+    expect(s.items).toHaveLength(1)
+    expect(s.items[0]).toMatchObject({ kind: 'notice', id: 'command:k1', text: '/permission danger-full-access', seq: 5 })
+  })
+
+  it('command/done 成功结果并入同一条目', () => {
+    let s = applySessionEvent(emptySlice('s1'), ev('command/run', { commandId: 'k1', name: 'permission', args: 'danger-full-access' }, 5))
+    s = applySessionEvent(s, ev('command/done', { commandId: 'k1', kind: 'success', text: 'preset danger-full-access' }, 6))
+    expect(s.items).toHaveLength(1)
+    expect(s.items[0]).toMatchObject({ id: 'command:k1', text: '/permission danger-full-access → preset danger-full-access', seq: 6 })
+  })
+
+  it('command/done 无文本成功追加 ✓；失败追加 ✗', () => {
+    let s = applySessionEvent(emptySlice('s1'), ev('command/run', { commandId: 'k1', name: 'model' }, 5))
+    s = applySessionEvent(s, ev('command/done', { commandId: 'k1', kind: 'success' }, 6))
+    expect(s.items[0]).toMatchObject({ text: '/model ✓' })
+    s = applySessionEvent(s, ev('command/run', { commandId: 'k2', name: 'permission', args: 'bogus' }, 7))
+    s = applySessionEvent(s, ev('command/done', { commandId: 'k2', kind: 'error', text: 'unknown preset "bogus"' }, 8))
+    expect(s.items[1]).toMatchObject({ text: '/permission bogus ✗ unknown preset "bogus"' })
+  })
+
+  it('孤儿 command/done（无 run）：有文本补独立条目，无文本仅推进 lastSeq', () => {
+    let s = applySessionEvent(emptySlice('s1'), ev('command/done', { commandId: 'k9', kind: 'success', text: 'preset workspace-write' }, 9))
+    expect(s.items).toHaveLength(1)
+    expect(s.items[0]).toMatchObject({ id: 'command:k9', text: 'preset workspace-write' })
+    const before = s
+    s = applySessionEvent(s, ev('command/done', { commandId: 'k10', kind: 'success' }, 10))
+    expect(s.items).toHaveLength(1)
+    expect(s.lastSeq).toBe(10)
+    expect(s.items[0]).toBe(before.items[0])
+  })
+
+  it('字段缺失时忽略且不产生条目', () => {
+    const s = applySessionEvent(emptySlice('s1'), ev('command/run', { name: 'permission' }, 5))
+    expect(s.items).toHaveLength(0)
+    expect(s.lastSeq).toBe(5)
+  })
+})

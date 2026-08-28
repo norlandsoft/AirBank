@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   apiPath, makeClientRequest, mintRpcId, parseHostFrame, parseMuxFrame, parseRpcReceipt,
-  parseServerRequest, parseServerResponse,
+  parseServerRequest, parseServerResponse, unwrapProjections,
 } from '../src/shared/dsh/wire'
 
 describe('makeClientRequest / mintRpcId', () => {
@@ -99,5 +99,21 @@ describe('parseRpcReceipt', () => {
 describe('apiPath', () => {
   it('拼接 /api 前缀', () => {
     expect(apiPath('session.list')).toBe('/api/session.list')
+  })
+})
+
+describe('unwrapProjections（投影信封解包）', () => {
+  it('asOfSeq/values 信封 → 平铺键值', () => {
+    expect(unwrapProjections({ asOfSeq: 42, values: { title: 'T', permissions: { currentValue: 'workspace-write' } } }))
+      .toEqual({ title: 'T', permissions: { currentValue: 'workspace-write' } })
+  })
+
+  it('空 values / 缺省 / 畸形 → undefined 或空表', () => {
+    expect(unwrapProjections({ asOfSeq: 1, values: {} })).toEqual({})
+    expect(unwrapProjections({ asOfSeq: 1 })).toBeUndefined()
+    expect(unwrapProjections(undefined)).toBeUndefined()
+    expect(unwrapProjections(null)).toBeUndefined()
+    expect(unwrapProjections('title')).toBeUndefined()
+    expect(unwrapProjections({ values: 'not-a-record' })).toBeUndefined()
   })
 })

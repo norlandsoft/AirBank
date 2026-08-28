@@ -18,7 +18,7 @@ function mockApi(): DesktopApi {
   const settings: AppSettings = {
     locale: 'zh-CN', theme: 'dark', port: 3080, dshHome: '', kernelDir: null, nodePath: null,
     useMirror: false, autoStart: false, closeToTray: true, activeProfile: 'web', ideRoot: '',
-    formatOnSave: true,
+    formatOnSave: true, gitRepos: [], activeGitRepo: '',
   }
   const info: AppInfo = {
     appVersion: 'dev', electron: '', chrome: '', node: '', platform: 'darwin', arch: 'arm64',
@@ -87,6 +87,17 @@ function mockApi(): DesktopApi {
       branches: async () => null,
       checkout: async () => undefined,
       createBranch: async () => undefined,
+      repos: async () => ({ repos: [], active: null, activeSource: null }),
+      addRepo: async () => { throw new Error('git unavailable outside Electron') },
+      cloneRepo: async () => { throw new Error('git unavailable outside Electron') },
+      removeRepo: async () => ({ repos: [], active: null, activeSource: null }),
+      activateRepo: async () => ({ repos: [], active: null, activeSource: null }),
+      fetch: async () => { throw new Error('git unavailable outside Electron') },
+      pull: async () => { throw new Error('git unavailable outside Electron') },
+      push: async () => { throw new Error('git unavailable outside Electron') },
+      discard: async () => undefined,
+      commitFiles: async () => [],
+      commitDiff: async () => '',
     },
     lsp: {
       ensure: async () => ({ running: false, root: null, pid: null }),

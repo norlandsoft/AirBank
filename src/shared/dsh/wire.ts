@@ -161,7 +161,24 @@ export interface SessionSummary {
   origin?: 'subagent'
   cwd?: string
   agentPreset?: string
+  /** 平铺投影键值（title/sessionStats/permissions…）；客户端从 ProjectionsEnvelope 解包，见 unwrapProjections。 */
   projections?: Record<string, unknown>
+}
+
+/**
+ * 投影信封：session.list 摘要与 session.history 尾页的 projections 字段的真实线上形态
+ *（apiproxy projections.schema：asOfSeq 基线序号 + values 键值映射）。
+ */
+export interface ProjectionsEnvelope {
+  asOfSeq?: number
+  values?: Record<string, unknown>
+}
+
+/** 解包投影信封 → 平铺键值；缺省/畸形返回 undefined。 */
+export function unwrapProjections(envelope: unknown): Record<string, unknown> | undefined {
+  if (!isRecord(envelope)) return undefined
+  const values = (envelope as ProjectionsEnvelope).values
+  return isRecord(values) ? values : undefined
 }
 
 export interface HistoryEntry {
