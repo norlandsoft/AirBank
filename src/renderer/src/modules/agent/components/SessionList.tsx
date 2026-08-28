@@ -201,14 +201,8 @@ export function SessionList() {
   const t = useT()
   const sessions = useAgent((state) => state.sessions)
   const hostInfo = useAgent((state) => state.hostInfo)
+  // 子代理会话不在列表中显示（仍可通过主会话关联浏览）
   const parents = sessions.filter((s) => !s.parentSessionId)
-  const childrenOf = new Map<string, typeof sessions>()
-  for (const session of sessions) {
-    if (!session.parentSessionId) continue
-    const list = childrenOf.get(session.parentSessionId) ?? []
-    list.push(session)
-    childrenOf.set(session.parentSessionId, list)
-  }
 
   // 按 cwd 分组：默认 cwd 组在前，其余按组内最新会话时间降序
   const groups = new Map<string, typeof parents>()
@@ -238,24 +232,13 @@ export function SessionList() {
               {homeShorten(cwd || t('agentUntitled'))}（{groupSessions.length}）
             </div>
             {groupSessions.map((s) => (
-              <div key={s.sessionId}>
-                <SessionRow
-                  sessionId={s.sessionId}
-                  updatedAt={s.updatedAt}
-                  running={s.running}
-                  projections={s.projections}
-                />
-                {(childrenOf.get(s.sessionId) ?? []).map((child) => (
-                  <div key={child.sessionId} className="session-child">
-                    <SessionRow
-                      sessionId={child.sessionId}
-                      updatedAt={child.updatedAt}
-                      running={child.running}
-                      projections={child.projections}
-                    />
-                  </div>
-                ))}
-              </div>
+              <SessionRow
+                key={s.sessionId}
+                sessionId={s.sessionId}
+                updatedAt={s.updatedAt}
+                running={s.running}
+                projections={s.projections}
+              />
             ))}
           </div>
         ))}

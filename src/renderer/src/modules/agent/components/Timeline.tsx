@@ -3,9 +3,10 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { useAgent } from '../store'
 import { useT } from '../../../hooks'
 import type { TimelineItem } from '../model'
-import { BlocksView } from './BlocksView'
-import { FileToolCard, ToolStatusLine } from './ToolCard'
+import { BlocksView, PartialBlocks } from './BlocksView'
+import { FileToolCard, ActivityLine } from './ToolCard'
 import { ImageBlock } from './ImageBlock'
+import { IconLogo } from '../../../icons'
 
 /** 用户消息内容渲染（text 段 + image 附件块）。 */
 function UserContent({ content }: { content: unknown[] }) {
@@ -30,7 +31,10 @@ function Item({ item, running }: { item: TimelineItem; running: boolean }) {
           <div className="msg-bubble msg-user"><UserContent content={item.content} /></div>
         </div>
       )
-    case 'assistant':
+    case 'assistant': {
+      // 无可见内容的行整体跳过（纯思考定稿消息不产生空行）
+      const visible = item.blocks.some((b) => b.kind === 'text' && b.text.trim().length > 0)
+      if (!visible && !item.interrupted) return null
       return (
         <div className="msg-row">
           <div className="msg-assistant">
@@ -39,16 +43,11 @@ function Item({ item, running }: { item: TimelineItem; running: boolean }) {
           </div>
         </div>
       )
+    }
     case 'tool':
       return (
         <div className="msg-row">
           <FileToolCard item={item} running={running} />
-        </div>
-      )
-    case 'tool-status':
-      return (
-        <div className="msg-row">
-          <ToolStatusLine item={item} />
         </div>
       )
     case 'notice':
@@ -58,10 +57,8 @@ function Item({ item, running }: { item: TimelineItem; running: boolean }) {
   }
 }
 
-/** 渲染单元：时间线条目或进行中 partial（统一进虚拟列表）。 */
-type Row =
-  | { kind: 'item'; item: TimelineItem }
-  | { kind: 'partial' }
+/** 虚拟列表渲染单元（tool-status 并入活动槽，不进虚拟列表）。 */
+type Row = { kind: 'item'; item: TimelineItem }
 
 /** 会话时间线：react-virtual 虚拟化 + 近底跟随。 */
 export function Timeline() {
@@ -74,8 +71,10 @@ export function Timeline() {
 
   const rows: Row[] = []
   if (slice) {
-    for (const item of slice.items) rows.push({ kind: 'item', item })
-    if (slice.partial && slice.partial.blocks.length > 0) rows.push({ kind: 'partial' })
+    for (const item of slice.items) {
+      if (item.kind === 'tool-status') continue // 并入活动槽
+      rows.push({ kind: 'item', item })
+    }
   }
 
   const virtualizer = useVirtualizer({
@@ -83,11 +82,13 @@ export function Timeline() {
     getScrollElement: () => containerRef.current,
     estimateSize: () => 72,
     overscan: 8,
-    getItemKey: (index) => {
-      const row = rows[index]
-      return row.kind === 'item' ? row.item.id : 'partial'
-    },
+    getItemKey: (index) => rows[index].item.id,
   })
+
+  const toolStatus = slice?.items.find((i) => i.kind === 'tool-status') as Extract<TimelineItem, { kind: 'tool-status' }> | undefined
+  const reasoningText = slice?.partial
+    ? slice.partial.blocks.filter((b) => b.kind === 'reasoning').map((b) => (b as { text: string }).text).join(' ').trim()
+    : ''
 
   const version = slice?.version ?? 0
   useEffect(() => {
@@ -106,7 +107,8 @@ export function Timeline() {
 
   if (!slice) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-2 text-dim">
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-dim">
+        <IconLogo size={44} />
         <div className="text-base">{t('agentEmptyTitle')}</div>
         <div className="text-xs">{t('agentEmptyDesc')}</div>
       </div>
@@ -121,7 +123,8 @@ export function Timeline() {
         </button>
       )}
       {slice.items.length === 0 && !slice.partial ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-2 text-dim py-16">
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 text-dim py-16">
+          <IconLogo size={44} />
           <div className="text-base">{t('agentEmptyTitle')}</div>
           <div className="text-xs">{t('agentEmptyDesc')}</div>
         </div>
@@ -136,19 +139,25 @@ export function Timeline() {
                 ref={virtualizer.measureElement}
                 style={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${vRow.start}px)` }}
               >
-                {row.kind === 'item'
-                  ? <Item item={row.item} running={slice.running} />
-                  : (
-                    <div className="msg-row">
-                      <div className="msg-assistant msg-partial">
-                        <BlocksView blocks={slice.partial?.blocks ?? []} />
-                        <span className="partial-cursor" />
-                      </div>
-                    </div>
-                  )}
+                <Item item={row.item} running={slice.running} />
               </div>
             )
           })}
+        </div>
+      )}
+      {/* 活动槽：思考与工具同一行，新轨迹原位替换 */}
+      {(toolStatus || reasoningText) && (
+        <div className="msg-row">
+          <ActivityLine item={toolStatus} reasoning={toolStatus ? undefined : reasoningText} />
+        </div>
+      )}
+      {/* 流式文本 partial */}
+      {slice.partial && slice.partial.blocks.some((b) => b.kind === 'text' && b.text.trim().length > 0) && (
+        <div className="msg-row">
+          <div className="msg-assistant msg-partial">
+            <PartialBlocks blocks={slice.partial.blocks} />
+            <span className="partial-cursor" />
+          </div>
         </div>
       )}
     </div>

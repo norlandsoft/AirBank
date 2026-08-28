@@ -160,6 +160,11 @@ export function applySessionEvent(slice: SessionSlice, event: SessionEventEnvelo
       break
     case 'user/message': {
       const message = data as unknown as UserMessageData
+      // 只呈现真人输入：plugin 注入的 system-reminder / runtime context 等合成消息隐藏
+      // （实测：真人 source.kind='user'，注入上下文 source.kind='plugin'）
+      if ((message.source?.kind ?? 'user') !== 'user') {
+        return slice.lastSeq < event.seq ? { ...slice, lastSeq: event.seq } : slice
+      }
       const id = `user:${message.id ?? `seq:${event.seq}`}`
       const item: TimelineItem = {
         kind: 'user', id, seq: event.seq, time: event.time,

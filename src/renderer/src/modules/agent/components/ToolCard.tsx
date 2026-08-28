@@ -3,13 +3,14 @@ import type { TimelineItem } from '../model'
 import { useIde } from '../../ide/store'
 import { useApp } from '../../../store'
 import { useT } from '../../../hooks'
+import { CodeBlock, langForPath } from '../../../lib/code-highlight'
 
 type ToolItem = Extract<TimelineItem, { kind: 'tool' }>
 type ToolStatusItem = Extract<TimelineItem, { kind: 'tool-status' }>
 
 const PATH_KEYS = ['path', 'file', 'filePath', 'file_path', 'filename', 'target_file', 'targetFile']
 
-/** 从工具参数 JSON 提取文件路径（fs 系工具的常见键 + 正则兜底）。 */
+/** 从工具参数 JSON 提取文件路径。 */
 function extractPath(argumentsRaw: string): string | null {
   try {
     const args = JSON.parse(argumentsRaw) as Record<string, unknown>
@@ -52,7 +53,26 @@ function extractText(content: unknown[]): string {
     .join('\n')
 }
 
-/** write/edit 工具卡：工具名 + 文件名主显，状态点，展开看参数/结果。 */
+interface ParsedArgs {
+  path?: string
+  content?: string
+  edits?: { old?: string; new?: string; old_string?: string; new_string?: string }[]
+}
+
+function parseArgs(raw: string): ParsedArgs | null {
+  try {
+    const args = JSON.parse(raw) as Record<string, unknown>
+    return {
+      path: typeof args.path === 'string' ? args.path : undefined,
+      content: typeof args.content === 'string' ? args.content : undefined,
+      edits: Array.isArray(args.edits) ? (args.edits as ParsedArgs['edits']) : undefined,
+    }
+  } catch {
+    return null
+  }
+}
+
+/** write/edit 工具卡：紧凑头部（工具名 + 文件名），展开内容语法高亮。 */
 export function FileToolCard({ item, running }: { item: ToolItem; running: boolean }) {
   const t = useT()
   const [open, setOpen] = useState(false)
@@ -64,7 +84,10 @@ export function FileToolCard({ item, running }: { item: ToolItem; running: boole
   const rel = target && root ? toRel(target, root) : null
   const parts = target ? shortenPath(target) : null
   const label = item.name === 'write' ? 'Write' : item.name === 'edit' ? 'Edit' : item.name
-  const resultText = item.result ? preview(extractText(item.result.content), 4000) : ''
+  const args = parseArgs(item.argumentsRaw)
+  const resultText = item.result ? extractText(item.result.content) : ''
+  const lang = target ? langForPath(target) : 'text'
+  const code = args?.content ?? resultText
 
   return (
     <div className={`filetool${failed ? ' filetool-error' : ''}`}>
@@ -95,9 +118,19 @@ export function FileToolCard({ item, running }: { item: ToolItem; running: boole
         <button className="filetool-chevron" onClick={() => setOpen((v) => !v)}>{open ? '▾' : '▸'}</button>
       </div>
       {open && (
-        <div className="toolcard-body">
-          {item.argumentsRaw && <pre className="toolcard-pre">{item.argumentsRaw}</pre>}
-          {resultText && <pre className="toolcard-pre">{resultText}</pre>}
+        <div className="filetool-body">
+          {args?.edits?.map((edit, index) => (
+            <div key={index} className="filetool-edit">
+              {edit.old !== undefined && (
+                <div className="filetool-editline filetool-edit-old"><span className="filetool-editmark">−</span><pre>{edit.old}</pre></div>
+              )}
+              {edit.new !== undefined && (
+                <div className="filetool-editline filetool-edit-new"><span className="filetool-editmark">＋</span><pre>{edit.new}</pre></div>
+              )}
+            </div>
+          ))}
+          {code.trim().length > 0 && <CodeBlock code={code} lang={lang} maxHeight={360} />}
+          {!args?.edits && !code.trim() && item.argumentsRaw && <pre className="toolcard-pre">{item.argumentsRaw}</pre>}
           {failed && <div className="toolcard-errtext">{item.error?.name}: {item.error?.code}</div>}
           {pending && <div className="text-dim text-xs">执行中…</div>}
         </div>
@@ -106,19 +139,31 @@ export function FileToolCard({ item, running }: { item: ToolItem; running: boole
   )
 }
 
-/** 瞬时工具状态行：单行、不累积、被下一条工具/消息覆盖。 */
-export function ToolStatusLine({ item }: { item: ToolStatusItem }) {
-  const target = extractPath(item.argumentsRaw)
-  const brief = target ? shortenPath(target).base : preview(item.argumentsRaw, 64)
-  return (
-    <div className={`toolstatus toolstatus-${item.state}`}>
-      {item.state === 'running' && <span className="toolstatus-spinner spin">◌</span>}
-      {item.state === 'done' && <span className="toolstatus-ok">✓</span>}
-      {item.state === 'error' && <span className="toolstatus-err">✗</span>}
-      <span className="toolstatus-name">{item.name}</span>
-      {brief && <span className="toolstatus-brief">{brief}</span>}
-      {item.state === 'running' && <span className="toolstatus-state">执行中…</span>}
-      {item.errorText && <span className="toolstatus-state">{item.errorText}</span>}
-    </div>
-  )
+/** 活动行：思考与工具的统一单行呈现（不换行；新记录原位替换上一条）。 */
+export function ActivityLine({ item, reasoning }: { item?: ToolStatusItem; reasoning?: string }) {
+  if (item) {
+    const target = extractPath(item.argumentsRaw)
+    const brief = target ? shortenPath(target).base : preview(item.argumentsRaw, 72)
+    return (
+      <div className={`activityline activityline-${item.state}`} title={item.argumentsRaw}>
+        {item.state === 'running' && <span className="activityline-dot spin">◌</span>}
+        {item.state === 'done' && <span className="activityline-dot activityline-ok">✓</span>}
+        {item.state === 'error' && <span className="activityline-dot activityline-err">✗</span>}
+        <span className="activityline-name">{item.name}</span>
+        {brief && <span className="activityline-brief">{brief}</span>}
+        {item.state === 'running' && <span className="activityline-state">执行中…</span>}
+        {item.errorText && <span className="activityline-state">{item.errorText}</span>}
+      </div>
+    )
+  }
+  if (reasoning) {
+    return (
+      <div className="activityline" title={reasoning}>
+        <span className="activityline-dot activityline-think">◍</span>
+        <span className="activityline-name">思考</span>
+        <span className="activityline-brief">{reasoning}</span>
+      </div>
+    )
+  }
+  return null
 }

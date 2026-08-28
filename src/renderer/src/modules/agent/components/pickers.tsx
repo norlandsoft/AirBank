@@ -100,12 +100,6 @@ export function ModelPicker() {
                 )}
               </>
             )}
-            {pane !== 'root' && (
-              <button className="picker-row picker-back" onClick={() => setPane('root')}>
-                <span className="picker-chevron">‹</span>
-                <span className="picker-label">{pane === 'model' ? t('menuModel') : t('menuEffort')}</span>
-              </button>
-            )}
             {pane === 'model' && groups.map((g) => (
               <div key={g.id} className="picker-group">
                 <div className="picker-subgroup-name">{g.name}</div>

@@ -74,11 +74,21 @@ describe('applySessionEvent', () => {
 
   it('user/message 按 id 去重', () => {
     let s = emptySlice('s1')
-    const data = { id: 'm1', content: [{ type: 'text', text: 'q' }], source: { kind: 'human' } }
+    const data = { id: 'm1', content: [{ type: 'text', text: 'q' }], source: { kind: 'user' } }
     s = applySessionEvent(s, ev('user/message', data, 1))
     s = applySessionEvent(s, ev('user/message', data, 2))
     expect(s.items).toHaveLength(1)
     expect(s.items[0]).toMatchObject({ kind: 'user', id: 'user:m1' })
+  })
+
+  it('plugin 注入的合成消息隐藏（system-reminder/runtime context）', () => {
+    let s = emptySlice('s1')
+    s = applySessionEvent(s, ev('user/message', { id: 'inj1', content: [{ type: 'text', text: 'Current runtime context…' }], source: { kind: 'plugin', plugin: 'context' } }, 1))
+    expect(s.items).toHaveLength(0)
+    expect(s.lastSeq).toBe(1)
+    // 真人（kind=user）正常进时间线
+    s = applySessionEvent(s, ev('user/message', { id: 'm1', content: [{ type: 'text', text: 'q' }], source: { kind: 'user' } }, 2))
+    expect(s.items).toHaveLength(1)
   })
 
   it('assistant/message 定稿并清同名 partial', () => {
@@ -141,7 +151,7 @@ describe('applySessionEvent', () => {
     expect(s.items.find((i) => i.kind === 'tool')).toMatchObject({ callId: 'c1', name: 'write' })
     // user/message 同样覆盖瞬时
     s = applySessionEvent(s, ev('tool/call', { turn: 2, step: 1, callId: 'c3', name: 'bash', arguments: '{}' }, 4))
-    s = applySessionEvent(s, ev('user/message', { id: 'm9', content: [], source: { kind: 'human' } }, 5))
+    s = applySessionEvent(s, ev('user/message', { id: 'm9', content: [], source: { kind: 'user' } }, 5))
     expect(s.items.some((i) => i.kind === 'tool-status')).toBe(false)
   })
 
@@ -199,7 +209,7 @@ describe('applyMuxFrame', () => {
 
 describe('applyHistory', () => {
   const entries = [
-    { event: ev('user/message', { id: 'm1', content: [{ type: 'text', text: 'q' }], source: { kind: 'human' } }, 1) },
+    { event: ev('user/message', { id: 'm1', content: [{ type: 'text', text: 'q' }], source: { kind: 'user' } }, 1) },
     { event: ev('assistant/message', { turn: 1, step: 1, message: { content: [{ type: 'text', text: 'a' }] } }, 2) },
     { event: ev('tool/call', { turn: 1, step: 1, callId: 'c1', name: 'write', arguments: '{}' }, 3) },
   ]
@@ -213,7 +223,7 @@ describe('applyHistory', () => {
 
   it('prepend 旧页插头部且按 id 去重', () => {
     let s = applyHistory(emptySlice('s1'), entries, true, undefined, 'replace')
-    const older = [{ event: ev('user/message', { id: 'm0', content: [], source: { kind: 'human' } }, 0, 500) }]
+    const older = [{ event: ev('user/message', { id: 'm0', content: [], source: { kind: 'user' } }, 0, 500) }]
     s = applyHistory(s, older, false, undefined, 'prepend')
     expect(s.items.map((i) => i.id)).toEqual(['user:m0', 'user:m1', 'assistant:1:1', 'tool:c1'])
     // 重复 prepend 同页不产生重复条目
