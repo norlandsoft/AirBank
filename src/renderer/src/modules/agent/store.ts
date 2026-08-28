@@ -46,6 +46,8 @@ interface AgentState {
   /** 起始页草稿：模型/推理等级/访问权限（创建会话后应用）。 */
   draftModel: { provider: string; model: string; effort?: string } | null
   draftAccess: string | null
+  /** 本地删除的会话墓碑：内核仍会返回该会话（SessionAdmin 不重启），列表用此集合过滤隐藏。 */
+  deletedSessions: Set<string>
 
   connect(baseUrl: string): void
   disconnect(): void
@@ -136,6 +138,7 @@ export const useAgent = create<AgentState>((set, get) => {
     draftPreset: null,
     draftModel: null,
     draftAccess: null,
+    deletedSessions: new Set<string>(),
 
     connect(baseUrl) {
       wire()
@@ -143,7 +146,8 @@ export const useAgent = create<AgentState>((set, get) => {
       void (async () => {
         try {
           const [hostInfo, sessions] = await Promise.all([client.hostDescribe(), client.sessionList()])
-          set({ hostInfo, sessions: sessions.items })
+          const deleted = get().deletedSessions
+          set({ hostInfo, sessions: sessions.items.filter((s) => !deleted.has(s.sessionId)) })
         } catch (error) { reportError(error) }
         // 起始页数据源：全局模型目录 + 默认模型/权限预设
         try {
@@ -177,7 +181,8 @@ export const useAgent = create<AgentState>((set, get) => {
     async refreshSessions() {
       try {
         const list = await client.sessionList()
-        set({ sessions: list.items })
+        const deleted = get().deletedSessions
+        set({ sessions: list.items.filter((s) => !deleted.has(s.sessionId)) })
       } catch (error) { reportError(error) }
     },
 
@@ -341,16 +346,25 @@ export const useAgent = create<AgentState>((set, get) => {
 
     async deleteSession(sessionId) {
       try {
+        // 运行中的会话不删除：不中断其 loop、不误删活数据（历史会话删除不重启引擎）
+        if (get().slices[sessionId]?.running) {
+          reportError(new Error('会话运行中，暂不能删除'))
+          return
+        }
         await bridge.sessionAdmin.delete(sessionId)
         set((state) => {
+          const deletedSessions = new Set(state.deletedSessions)
+          deletedSessions.add(sessionId)
           const slices = { ...state.slices }
           delete slices[sessionId]
           return {
             sessions: state.sessions.filter((s) => s.sessionId !== sessionId),
             activeSessionId: state.activeSessionId === sessionId ? null : state.activeSessionId,
             slices,
+            deletedSessions,
           }
         })
+        // 内核仍可能从 session.list 返回该会话（SessionAdmin 不再重启）——墓碑过滤兜底
         await get().refreshSessions()
       } catch (error) { reportError(error) }
     },

@@ -2,19 +2,19 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { Logger } from './logger'
 import type { SettingsService } from './settings'
-import type { DshServerManager } from './server'
 
 /**
  * 会话管理（内核 API 之外的桌面端操作）：删除会话。
- * 内核 v1 无 session.delete RPC——实现路径：停内核 → 删除
- * $DSH_HOME/sessions/**&#47;<sessionId>/ 目录 + 擦洗 workspace.json 注册表
- * （archivedSessionIds 与各 workspace 的 sessionIds）→ 重启内核重扫。
+ * 内核无按会话删除 RPC，但删除历史会话不应重启引擎（否则会中断其它运行中的会话 loop）。
+ * 实现路径：仅删除 $DSH_HOME/sessions/**&#47;<sessionId>/ 目录 + 擦洗 workspace.json 注册表
+ * （archivedSessionIds 与各 workspace 的 sessionIds）——纯磁盘数据清理，不触碰内核进程。
+ * 会话从当前列表移除由渲染层墓碑（tombstones）过滤完成；数据清理即时生效，
+ * 内核在下次自然启动重扫时不再复用该目录，会话彻底消失。
  * 不依赖 electron，可 node 直测。
  */
 export class SessionAdminService {
   constructor(
     private readonly settings: SettingsService,
-    private readonly server: DshServerManager,
     private readonly logger: Logger,
   ) {}
 
@@ -78,21 +78,15 @@ export class SessionAdminService {
     return changed
   }
 
-  /** 删除会话：停内核 → 删目录 + 擦洗注册表 → 重启（原运行状态恢复）。 */
+  /** 删除会话：仅清理磁盘数据（目录 + 注册表引用），不重启内核、不中断运行中的会话。 */
   async deleteSession(sessionId: string): Promise<{ removedDirs: number; scrubbed: boolean }> {
     if (!/^[\w.-]+$/.test(sessionId)) throw new Error(`invalid session id: ${sessionId}`)
-    const resume = this.server.getStatus().state === 'running'
-    this.logger.info('session-admin', `delete ${sessionId} (resume=${resume})`)
-    await this.server.stop()
-    try {
-      const dirs = this.findSessionDirs(sessionId)
-      for (const dir of dirs) fs.rmSync(dir, { recursive: true, force: true })
-      const scrubbed = this.scrubRegistry(sessionId)
-      if (dirs.length === 0 && !scrubbed) throw new Error(`session not found on disk: ${sessionId}`)
-      this.logger.info('session-admin', `deleted ${sessionId}: dirs=${dirs.length} scrubbed=${scrubbed}`)
-      return { removedDirs: dirs.length, scrubbed }
-    } finally {
-      if (resume) await this.server.start()
-    }
+    this.logger.info('session-admin', `delete ${sessionId} (no restart)`)
+    const dirs = this.findSessionDirs(sessionId)
+    for (const dir of dirs) fs.rmSync(dir, { recursive: true, force: true })
+    const scrubbed = this.scrubRegistry(sessionId)
+    if (dirs.length === 0 && !scrubbed) throw new Error(`session not found on disk: ${sessionId}`)
+    this.logger.info('session-admin', `deleted ${sessionId}: dirs=${dirs.length} scrubbed=${scrubbed}`)
+    return { removedDirs: dirs.length, scrubbed }
   }
 }

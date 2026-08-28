@@ -82,7 +82,7 @@ export function createDesktopApp(): DesktopApp {
   const ci = new CiService(workspace, logger)
   const github = new GithubService(workspace, logger)
   const terminal = new TerminalService(workspace, logger)
-  const sessionAdmin = new SessionAdminService(settings, server, logger)
+  const sessionAdmin = new SessionAdminService(settings, logger)
   const services: Services = { logger, settings, runtime, kernel, server, kernelProxy, profiles, plugins, setup, workspace, format, git, lsp, ssh, ci, github, terminal, sessionAdmin }
   if (settings.get().ideRoot !== '') void workspace.setRoot(settings.get().ideRoot).catch(() => undefined)
 
