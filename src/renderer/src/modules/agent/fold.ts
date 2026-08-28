@@ -5,7 +5,7 @@
  * - 时间线：user/assistant/tool 条目按稳定 id upsert，live 与 history 重放去重；
  * - 审批/提问：rpcId 稳定、重连重放 → Map 幂等；投影 high-seq-wins。
  */
-import type { HistoryEntry, MuxFrame, RpcId, SessionEventEnvelope, ToolEventView } from '../../../../shared/dsh/wire'
+import type { HistoryEntry, MuxFrame, QueuedInboxItem, RpcId, SessionEventEnvelope, ToolEventView } from '../../../../shared/dsh/wire'
 import type {
   AssistantBlock, LivePartial, PendingApproval, SessionSlice, StreamChunk, TimelineItem,
 } from './model'
@@ -321,6 +321,15 @@ export function applySessionEvent(slice: SessionSlice, event: SessionEventEnvelo
 }
 
 // ---- mux 帧折叠 ----
+
+/**
+ * 排队提示的可见条目（对齐官方 QueueDock：只计 placement='queued'）。
+ * steering/context 是 next-step 注入（如 /permission 切换的 policy-change 通知）：
+ * 空闲时注入会一直滞留到下一回合，计入会把"1 条消息排队中"卡死在停靠区。
+ */
+export function visibleQueueItems(items: QueuedInboxItem[]): QueuedInboxItem[] {
+  return items.filter((item) => item.placement === 'queued')
+}
 
 export function applyMuxFrame(slice: SessionSlice, rpcId: RpcId, frame: MuxFrame): SessionSlice {
   if ('sessionId' in frame && frame.sessionId !== slice.sessionId) return slice

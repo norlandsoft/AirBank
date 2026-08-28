@@ -32,9 +32,9 @@ export function AgentPanel() {
         ) : (
           <div className="start-hero">
             <div className="start-pickers-row">
-              <CwdPicker />
               <PresetPicker />
             </div>
+            <CwdPicker />
             <Composer />
           </div>
         )}

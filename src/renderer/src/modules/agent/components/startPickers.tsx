@@ -3,6 +3,7 @@ import { useAgent } from '../store'
 import { useT } from '../../../hooks'
 import { bridge } from '../../../bridge'
 import { IconCheck, IconFolder } from '../../../icons'
+import { draftCwdFromInput, homeShorten, recentCwds } from '../cwdOptions'
 
 /** 弹层通用壳（与 pickers.tsx 同款）。 */
 function Popover({ onClose, wide, children }: { onClose(): void; wide?: boolean; children: React.ReactNode }) {
@@ -14,74 +15,72 @@ function Popover({ onClose, wide, children }: { onClose(): void; wide?: boolean;
   )
 }
 
-const homeShorten = (cwd: string): string => cwd.replace(/^\/(?:Users|home)\/[^/]+/, '~')
-
-/** 目录选择器（起始页左上角；输入/浏览/最近目录）。 */
+/** 目录选择（起始页内联：输入/浏览/最近目录 chips，不用弹层）。 */
 export function CwdPicker() {
   const t = useT()
   const hostInfo = useAgent((state) => state.hostInfo)
   const sessions = useAgent((state) => state.sessions)
   const draftCwd = useAgent((state) => state.draftCwd)
   const setDraftCwd = useAgent((state) => state.setDraftCwd)
-  const [open, setOpen] = useState(false)
-  const [draft, setDraft] = useState('')
+  /** 编辑中的输入（null = 未编辑，输入框显示当前生效目录）。 */
+  const [editing, setEditing] = useState<string | null>(null)
 
   const defaultCwd = hostInfo?.cwd ?? ''
-  const recents = [...new Set(sessions.map((s) => s.cwd).filter((c): c is string => Boolean(c)))].slice(0, 8)
+  const recents = recentCwds(sessions)
   const current = draftCwd ?? defaultCwd
 
+  const commit = (text: string): void => {
+    setDraftCwd(draftCwdFromInput(text))
+    setEditing(null)
+  }
+
   return (
-    <span className="picker">
-      <button className="btn btn-ghost start-picker-btn" onClick={() => { setDraft(''); setOpen((v) => !v) }}>
-        <IconFolder size={14} /> {homeShorten(current) || '…'} ▾
-      </button>
-      {open && (
-        <Popover onClose={() => setOpen(false)} wide>
-          <div className="picker-list">
-            <div className="newsession-inputrow" style={{ padding: '4px 6px' }}>
-              <input
-                className="input" autoFocus placeholder={defaultCwd}
-                value={draft} onChange={(event) => setDraft(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    setDraftCwd(draft.trim() || null)
-                    setOpen(false)
-                  }
-                }}
-              />
-              <button
-                className="btn"
-                onClick={() => void bridge.dialogPickDirectory().then((dir) => {
-                  if (dir) {
-                    setDraftCwd(dir)
-                    setOpen(false)
-                  }
-                })}
-              >
-                {t('sessionCwdBrowse')}
-              </button>
-            </div>
-            <button
-              className={`picker-row${draftCwd === null ? ' picker-row-active' : ''}`}
-              onClick={() => { setDraftCwd(null); setOpen(false) }}
-            >
-              <span className="picker-check">{draftCwd === null ? <IconCheck size={13} /> : ''}</span>
-              <span className="picker-label">{homeShorten(defaultCwd)}（{t('startCwdDefault')}）</span>
-            </button>
-            {recents.filter((dir) => dir !== defaultCwd).map((dir) => (
-              <button
-                key={dir}
-                className={`picker-row${draftCwd === dir ? ' picker-row-active' : ''}`}
-                onClick={() => { setDraftCwd(dir); setOpen(false) }}
-              >
-                <span className="picker-check">{draftCwd === dir ? <IconCheck size={13} /> : ''}</span>
-                <span className="picker-label newsession-path">{dir}</span>
-              </button>
-            ))}
-          </div>
-        </Popover>
-      )}
-    </span>
+    <div className="start-cwd">
+      <div className="newsession-inputrow">
+        <IconFolder size={14} />
+        <input
+          className="input"
+          value={editing ?? current}
+          placeholder={defaultCwd}
+          onChange={(event) => setEditing(event.target.value)}
+          onBlur={() => { if (editing !== null) commit(editing) }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') commit(event.currentTarget.value)
+            if (event.key === 'Escape') setEditing(null)
+          }}
+        />
+        <button
+          className="btn"
+          onClick={() => void bridge.dialogPickDirectory().then((dir) => {
+            if (dir) {
+              setDraftCwd(dir)
+              setEditing(null)
+            }
+          })}
+        >
+          {t('sessionCwdBrowse')}
+        </button>
+      </div>
+      <div className="start-cwd-recents">
+        <button
+          className={`start-cwd-chip${draftCwd === null ? ' start-cwd-chip-active' : ''}`}
+          title={defaultCwd}
+          onClick={() => { setDraftCwd(null); setEditing(null) }}
+        >
+          {homeShorten(defaultCwd)}（{t('startCwdDefault')}）
+        </button>
+        {recents.filter((dir) => dir !== defaultCwd).map((dir) => (
+          <button
+            key={dir}
+            className={`start-cwd-chip${draftCwd === dir ? ' start-cwd-chip-active' : ''}`}
+            title={dir}
+            onClick={() => { setDraftCwd(dir); setEditing(null) }}
+          >
+            {homeShorten(dir)}
+          </button>
+        ))}
+      </div>
+    </div>
   )
 }
 

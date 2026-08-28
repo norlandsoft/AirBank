@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  applyHistory, applyMuxFrame, applySessionEvent, foldChunk, isVisibleAssistantChunk, toAssistantBlocks,
+  applyHistory, applyMuxFrame, applySessionEvent, foldChunk, isVisibleAssistantChunk, toAssistantBlocks, visibleQueueItems,
 } from '../src/renderer/src/modules/agent/fold'
 import { emptySlice, type AssistantBlock, type StreamChunk } from '../src/renderer/src/modules/agent/model'
 import type { SessionEventEnvelope } from '../src/shared/dsh/wire'
@@ -204,6 +204,20 @@ describe('applyMuxFrame', () => {
     expect(s.pendingQuestion?.rpcId).toBe('rpc-q')
     s = applyMuxFrame(s, 'r', { type: 'question/resolved', sessionId: 's1', questionRpcId: 'rpc-q', outcome: 'answered' })
     expect(s.pendingQuestion).toBeNull()
+  })
+
+  it('session/queue 原样入切片，visibleQueueItems 只计 queued（对齐官方 QueueDock）', () => {
+    const msg = (id: string, kind: string) => ({ id, role: 'user' as const, content: [], source: { kind } })
+    const items = [
+      { id: 'q1', placement: 'queued' as const, message: msg('m1', 'user') },
+      { id: 'q2', placement: 'steering' as const, message: msg('m2', 'user') },
+      // /permission 切换注入的 policy-change 通知：空闲时滞留 next-step，不得计入排队提示
+      { id: 'q3', placement: 'context' as const, message: msg('m3', 'plugin') },
+    ]
+    const s = applyMuxFrame(emptySlice('s1'), 'r', { type: 'session/queue', sessionId: 's1', items })
+    expect(s.queue).toHaveLength(3)
+    expect(visibleQueueItems(s.queue).map((item) => item.id)).toEqual(['q1'])
+    expect(visibleQueueItems([])).toEqual([])
   })
 })
 

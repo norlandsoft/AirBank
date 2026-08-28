@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAgent } from '../store'
+import { visibleQueueItems } from '../fold'
 import { useT } from '../../../hooks'
 import type { PendingQuestion } from '../model'
 
@@ -100,14 +101,16 @@ export function ApprovalDock() {
   const slice = useAgent((state) => (state.activeSessionId ? state.slices[state.activeSessionId] : undefined))
   if (!slice) return null
   const approvals = [...slice.pendingApprovals.values()]
+  // 只计真排队消息（queued）：steering/context 注入不算（对齐官方 QueueDock）
+  const queued = visibleQueueItems(slice.queue)
   return (
     <div className="dock">
       {approvals.map((approval) => (
         <ApprovalCard key={approval.approvalId} approvalId={approval.approvalId} toolName={approval.toolName} reason={approval.reason} />
       ))}
       {slice.pendingQuestion && <QuestionCard pending={slice.pendingQuestion} />}
-      {slice.queue.length > 0 && (
-        <div className="text-dim text-xs dock-queue">{t('agentQueueCount', { n: String(slice.queue.length) })}</div>
+      {queued.length > 0 && (
+        <div className="text-dim text-xs dock-queue">{t('agentQueueCount', { n: String(queued.length) })}</div>
       )}
     </div>
   )

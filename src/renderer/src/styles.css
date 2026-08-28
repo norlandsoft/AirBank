@@ -995,6 +995,19 @@ input, textarea, select { font-family: inherit; }
   display: flex; gap: 10px; padding: 0 6px 10px;
 }
 .start-picker-btn { font-size: 13px; }
+/* 起始页内联工作目录选择（无弹层） */
+.start-cwd { display: flex; flex-direction: column; gap: 8px; padding: 0 6px 10px; }
+.start-cwd .newsession-inputrow { color: var(--text-dim); }
+.start-cwd .newsession-inputrow .input { font-family: var(--font-mono); font-size: 12px; }
+.start-cwd-recents { display: flex; flex-wrap: wrap; gap: 6px; }
+.start-cwd-chip {
+  border: 1px solid var(--border); border-radius: 999px; background: var(--bg-elevated);
+  color: var(--text-dim); font-size: 11.5px; font-family: var(--font-mono);
+  padding: 2px 10px; cursor: pointer; max-width: 280px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.start-cwd-chip:hover { background: var(--bg-hover); color: var(--text); }
+.start-cwd-chip-active { border-color: var(--accent); color: var(--accent); }
 .start-hero .composer { border-top: none; padding: 0; }
 .start-hero .composer-card { border-radius: 14px; }
 .start-hero .composer-input { min-height: 96px; }
