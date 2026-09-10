@@ -1,0 +1,6 @@
+# 安全配置：JWT 与 AES 密钥（培训环境固定值，生产化须接入 KMS/Vault，见设计文档 08 §7）
+airbank:
+  security:
+    jwt-secret: "airbank-dev-jwt-secret-0001-airbank-dev-jwt-secret-0001"
+    jwt-expire-minutes: 120
+    aes-key: "airbank-dev-aes-key-0001-32bytes!!"

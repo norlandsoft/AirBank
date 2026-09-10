@@ -1,0 +1,76 @@
+server:
+  port: 8084
+  servlet:
+    context-path: /api/counter
+  shutdown: graceful
+spring:
+  application:
+    name: airbank-counter
+  config:
+    import: optional:nacos:airbank-common.yaml,optional:nacos:airbank-security.yaml,optional:nacos:airbank-biz-params.yaml,optional:nacos:airbank-counter.yaml
+  cloud:
+    nacos:
+      server-addr: ${NACOS_ADDR:localhost:8848}
+      discovery:
+        namespace: ${NACOS_NAMESPACE:airbank-dev}
+        group: AIRBANK_GROUP
+      config:
+        namespace: ${NACOS_NAMESPACE:airbank-dev}
+        group: AIRBANK_GROUP
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 2000
+            read-timeout: 15000
+  datasource:
+    # stringtype=unspecified：JSONB 列经 setString 写入时由 PG 隐式转换
+    url: jdbc:postgresql://${PG_HOST:localhost}:${PG_PORT:5432}/airbank_counter?stringtype=unspecified
+    username: ${DB_USER:counter_app}
+    password: ${DB_PASSWORD:AirBank@2026}
+    hikari:
+      maximum-pool-size: 10
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  jackson:
+    time-zone: Asia/Shanghai
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+airbank:
+  params:
+    # 大额授权阈值（分）
+    authorize-threshold: 5000000
+    # 柜员尾箱限额（分）
+    cash-box-limit: 20000000
+  security:
+    exclude-paths:
+      - /actuator/**
+      - /v3/api-docs/**
+      - /swagger-ui/**
+      - /swagger-ui.html
+      - /error
+      - /internal/**
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
+logging:
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level [%thread] [%X{traceId:-}] %logger{36} - %msg%n"

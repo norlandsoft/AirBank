@@ -1,0 +1,20 @@
+# 网关服务级配置
+airbank:
+  gateway:
+    security:
+      jwt-secret: "airbank-dev-jwt-secret-0001-airbank-dev-jwt-secret-0001"
+      whitelist:
+        - /api/*/actuator/**
+        - /api/*/v3/api-docs/**
+        - /api/*/swagger-ui/**
+        - /api/*/swagger-ui.html
+        - /api/uam/auth/login
+        - /api/uam/auth/captcha
+        - /api/uam/internal/**
+        - /api/ebank/auth/login
+        - /api/ebank/auth/captcha
+        - /api/ebank/register/**
+        - /api/ebank/internal/**
+        - /api/core/internal/**
+        - /api/wealth/internal/**
+        - /api/counter/internal/**

@@ -1,0 +1,9 @@
+package com.airbank.counter.mapper;
+
+import com.airbank.counter.entity.TellerShift;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
+
+@Mapper
+public interface TellerShiftMapper extends BaseMapper<TellerShift> {
+}

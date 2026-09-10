@@ -1,0 +1,14 @@
+# 业务参数（@RefreshScope 动态生效：培训中可实时改利率/限额演示配置中心价值）
+airbank:
+  params:
+    demand-rate: 0.0030
+    time-rates: "3:0.0115,6:0.0135,12:0.0155,24:0.0185,36:0.0220"
+    time-deposit-min: 100000
+    authorize-threshold: 5000000
+    cash-box-limit: 20000000
+    ebank-single-limit: 5000000
+    ebank-daily-limit: 20000000
+    batch-cron: "0 35 23 * * ?"
+    confirm-cron: "0 40 23 * * ?"
+    accrual-cron: "0 45 23 * * ?"
+    settle-cron: "0 50 23 * * ?"

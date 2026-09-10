@@ -1,0 +1,79 @@
+package com.airbank.common.exception;
+
+/**
+ * 全行错误码分段（docs/design/07 §4）：
+ * 0 成功 · 1000~1999 通用 · 2000~ UAM · 3000~ CORE · 4000~ WEALTH · 5000~ COUNTER · 6000~ EBANK · 7000~ GATEWAY。
+ */
+public interface ErrorCodes {
+
+    int PARAM_INVALID = 1001;
+    int JSON_INVALID = 1002;
+    int UNAUTHORIZED = 1003;
+    int DUPLICATE_REQUEST = 1004;
+    int NOT_FOUND = 1005;
+    int SYSTEM_ERROR = 1999;
+
+    // 用户中心
+    int CUSTOMER_NOT_FOUND = 2001;
+    int CUSTOMER_EXISTS = 2002;
+    int LOGIN_NAME_EXISTS = 2003;
+    int LOGIN_FAILED = 2004;
+    int CAPTCHA_INVALID = 2005;
+    int LOGIN_LOCKED = 2006;
+    int NO_PERMISSION = 2007;
+    int RISK_ASSESS_MISSING = 2008;
+    int MOBILE_MISMATCH = 2009;
+    int OTP_INVALID = 6002; // OTP 校验统一走 6002，网银/柜面共用
+
+    // 核心系统
+    int ACCT_NOT_FOUND = 3001;
+    int BALANCE_NOT_ENOUGH = 3002;
+    int ACCT_STATUS_DENY = 3003;
+    int IDEMPOTENT_CONFLICT = 3004;
+    int ACCT_CLOSED = 3005;
+    int PAYEE_DENY = 3006;
+    int AMOUNT_INVALID = 3007;
+    int DEPOSIT_STATUS_DENY = 3008;
+    int ACCOUNTING_UNBALANCED = 3009;
+    int TIME_DEPOSIT_MIN = 3010;
+    int BATCH_RUNNING = 3011;
+
+    // 理财
+    int PRODUCT_NOT_FOUND = 4001;
+    int PRODUCT_NOT_ON_SALE = 4002;
+    int RISK_MISMATCH = 4003;
+    int AMOUNT_BELOW_MIN = 4004;
+    int AMOUNT_OVER_SINGLE = 4005;
+    int RAISE_LIMIT_NOT_ENOUGH = 4006;
+    int SHARES_NOT_ENOUGH = 4007;
+    int PRODUCT_NOT_RUNNING = 4008;
+    int PAY_FAILED = 4009;
+    int ORDER_STATUS_DENY = 4010;
+    int SHARES_BELOW_MIN = 4011;
+
+    // 柜面
+    int NOT_SIGNED_IN = 5001;
+    int CASH_BOX_NOT_ENOUGH = 5002;
+    int CASH_BOX_OVER_LIMIT = 5003;
+    int CT_STATUS_DENY = 5004;
+    int REVIEW_NO_AUTH = 5005;
+    int SELF_REVIEW_DENY = 5006;
+    int DAY_SETTLE_UNBALANCED = 5007;
+    int REVERSE_DENY = 5008;
+
+    // 网银
+    int REGISTER_MISMATCH = 6001;
+    int OVER_SINGLE_LIMIT = 6003;
+    int OVER_DAILY_LIMIT = 6004;
+    int PAYEE_NAME_MISMATCH = 6005;
+    int NOT_OUR_BANK = 6006;
+    int EBANK_LOCKED = 6007;
+    int NOT_OWNER = 6008;
+
+    // 网关
+    int TOKEN_INVALID = 7001;
+    int TOKEN_LOGOUT = 7002;
+    int RATE_LIMITED = 7003;
+    int ROUTE_NOT_FOUND = 7004;
+    int DOWNSTREAM_UNAVAILABLE = 7005;
+}

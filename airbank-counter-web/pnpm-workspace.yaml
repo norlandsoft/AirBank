@@ -1,0 +1,3 @@
+# 允许 esbuild 安装脚本（Vite 构建依赖）
+allowBuilds:
+  esbuild: true

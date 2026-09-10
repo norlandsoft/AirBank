@@ -1,9 +1,22 @@
+# Java
+target/
+*.class
+
+# Frontend
 node_modules/
 dist/
 release/
 out/
-*.log
+coverage/
+*.local
+
+# Env & IDE
+.env
+.idea/
+*.iml
+.vscode/
 .DS_Store
 .dev-home/
-coverage/
-.env
+
+# Logs
+*.log

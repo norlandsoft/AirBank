@@ -1,0 +1,4 @@
+# core 服务级配置（Nacos 可热改；默认值见各服务 application.yaml）
+logging:
+  level:
+    com.airbank.core: info

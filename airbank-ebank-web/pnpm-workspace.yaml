@@ -1,0 +1,4 @@
+# 独立工作区：使 pnpm 允许 esbuild 的安装脚本（Vite 构建依赖），
+# 不依赖仓库根 pnpm-workspace.yaml 中的占位配置。
+allowBuilds:
+  esbuild: true

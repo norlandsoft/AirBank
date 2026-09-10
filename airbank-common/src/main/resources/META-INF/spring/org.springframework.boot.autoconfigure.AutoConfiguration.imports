@@ -1,0 +1,5 @@
+com.airbank.common.security.SecurityAutoConfig
+com.airbank.common.config.JacksonConfig
+com.airbank.common.config.MybatisPlusConfig
+com.airbank.common.feign.FeignAutoConfig
+com.airbank.common.exception.ExceptionAutoConfig

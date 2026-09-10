@@ -1,0 +1,329 @@
+name: airbank
+
+x-backend-env: &backend-env
+  TZ: ${TZ:-Asia/Shanghai}
+  NACOS_ADDR: airbank-nacos
+  NACOS_NAMESPACE: ${NACOS_NAMESPACE:-airbank-dev}
+  PG_HOST: airbank-postgres
+  DB_PASSWORD: ${PG_PASSWORD:-AirBank@2026}
+  REDIS_HOST: airbank-redis
+  ZIPKIN_ENDPOINT: http://airbank-zipkin:9411/api/v2/spans
+
+x-backend-health: &backend-health
+  interval: 10s
+  timeout: 5s
+  retries: 18
+  start_period: 40s
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: airbank-postgres
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-AirBank@2026}
+      AIRBANK_DB_PASSWORD: ${PG_PASSWORD:-AirBank@2026}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "${PG_HOST_PORT:-5432}:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks: [ airbank ]
+
+  redis:
+    image: redis:7-alpine
+    container_name: airbank-redis
+    command: [ "redis-server", "--appendonly", "yes" ]
+    ports:
+      - "${REDIS_HOST_PORT:-6379}:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks: [ airbank ]
+
+  nacos:
+    image: nacos/nacos-server:v2.3.2-slim
+    container_name: airbank-nacos
+    environment:
+      MODE: standalone
+      NACOS_AUTH_ENABLE: "false"
+      TZ: ${TZ:-Asia/Shanghai}
+      JVM_XMS: 256m
+      JVM_XMX: 512m
+    ports:
+      - "${NACOS_HOST_PORT:-8848}:8848"
+      - "9848:9848"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fs http://localhost:8848/nacos/v1/console/health/liveness || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    networks: [ airbank ]
+
+  nacos-init:
+    build:
+      context: ../nacos
+    image: airbank/nacos-init:${IMAGE_TAG:-latest}
+    container_name: airbank-nacos-init
+    environment:
+      NACOS_ADDR: airbank-nacos
+      NACOS_NAMESPACE: ${NACOS_NAMESPACE:-airbank-dev}
+    restart: "no"
+    depends_on:
+      nacos:
+        condition: service_healthy
+    networks: [ airbank ]
+
+  pg-init:
+    build:
+      context: ../postgres
+    image: airbank/pg-init:${IMAGE_TAG:-latest}
+    container_name: airbank-pg-init
+    environment:
+      PGHOST: airbank-postgres
+      PGPORT: "5432"
+      POSTGRES_USER: postgres
+      PGPASSWORD: ${PG_PASSWORD:-AirBank@2026}
+      AIRBANK_DB_PASSWORD: ${PG_PASSWORD:-AirBank@2026}
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [ airbank ]
+
+  airbank-gateway:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/backend.Dockerfile
+      args: { MODULE: airbank-gateway }
+    image: airbank/gateway:${IMAGE_TAG:-latest}
+    container_name: airbank-gateway
+    environment:
+      <<: *backend-env
+    ports:
+      - "${GATEWAY_HOST_PORT:-8080}:8080"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://127.0.0.1:8080/actuator/health | grep -q UP" ]
+      <<: *backend-health
+    depends_on:
+      nacos:
+        condition: service_healthy
+      nacos-init:
+        condition: service_completed_successfully
+      pg-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    networks: [ airbank ]
+
+  airbank-uam:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/backend.Dockerfile
+      args: { MODULE: airbank-uam }
+    image: airbank/uam:${IMAGE_TAG:-latest}
+    container_name: airbank-uam
+    environment:
+      <<: *backend-env
+    ports:
+      - "127.0.0.1:${UAM_HOST_PORT:-8083}:8083"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://127.0.0.1:8083/api/uam/actuator/health | grep -q UP" ]
+      <<: *backend-health
+    depends_on:
+      nacos:
+        condition: service_healthy
+      nacos-init:
+        condition: service_completed_successfully
+      pg-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    networks: [ airbank ]
+
+  airbank-core:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/backend.Dockerfile
+      args: { MODULE: airbank-core }
+    image: airbank/core:${IMAGE_TAG:-latest}
+    container_name: airbank-core
+    environment:
+      <<: *backend-env
+    ports:
+      - "127.0.0.1:${CORE_HOST_PORT:-8081}:8081"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://127.0.0.1:8081/api/core/actuator/health | grep -q UP" ]
+      <<: *backend-health
+    depends_on:
+      nacos:
+        condition: service_healthy
+      nacos-init:
+        condition: service_completed_successfully
+      pg-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    networks: [ airbank ]
+
+  airbank-wealth:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/backend.Dockerfile
+      args: { MODULE: airbank-wealth }
+    image: airbank/wealth:${IMAGE_TAG:-latest}
+    container_name: airbank-wealth
+    environment:
+      <<: *backend-env
+    ports:
+      - "127.0.0.1:${WEALTH_HOST_PORT:-8082}:8082"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://127.0.0.1:8082/api/wealth/actuator/health | grep -q UP" ]
+      <<: *backend-health
+    depends_on:
+      nacos:
+        condition: service_healthy
+      nacos-init:
+        condition: service_completed_successfully
+      pg-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      airbank-core:
+        condition: service_started
+    networks: [ airbank ]
+
+  airbank-counter:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/backend.Dockerfile
+      args: { MODULE: airbank-counter }
+    image: airbank/counter:${IMAGE_TAG:-latest}
+    container_name: airbank-counter
+    environment:
+      <<: *backend-env
+    ports:
+      - "127.0.0.1:${COUNTER_HOST_PORT:-8084}:8084"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://127.0.0.1:8084/api/counter/actuator/health | grep -q UP" ]
+      <<: *backend-health
+    depends_on:
+      nacos:
+        condition: service_healthy
+      nacos-init:
+        condition: service_completed_successfully
+      pg-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      airbank-uam:
+        condition: service_healthy
+      airbank-core:
+        condition: service_healthy
+      airbank-wealth:
+        condition: service_healthy
+    networks: [ airbank ]
+
+  airbank-ebank:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/backend.Dockerfile
+      args: { MODULE: airbank-ebank }
+    image: airbank/ebank:${IMAGE_TAG:-latest}
+    container_name: airbank-ebank
+    environment:
+      <<: *backend-env
+    ports:
+      - "127.0.0.1:${EBANK_HOST_PORT:-8085}:8085"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://127.0.0.1:8085/api/ebank/actuator/health | grep -q UP" ]
+      <<: *backend-health
+    depends_on:
+      nacos:
+        condition: service_healthy
+      nacos-init:
+        condition: service_completed_successfully
+      pg-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      airbank-uam:
+        condition: service_healthy
+      airbank-core:
+        condition: service_healthy
+      airbank-wealth:
+        condition: service_healthy
+    networks: [ airbank ]
+
+  airbank-counter-web:
+    build:
+      context: ../../airbank-counter-web
+      dockerfile: Dockerfile
+    image: airbank/counter-web:${IMAGE_TAG:-latest}
+    container_name: airbank-counter-web
+    ports:
+      - "${COUNTER_WEB_PORT:-8001}:80"
+    depends_on:
+      airbank-gateway:
+        condition: service_started
+    networks: [ airbank ]
+
+  airbank-ebank-web:
+    build:
+      context: ../../airbank-ebank-web
+      dockerfile: Dockerfile
+    image: airbank/ebank-web:${IMAGE_TAG:-latest}
+    container_name: airbank-ebank-web
+    ports:
+      - "${EBANK_WEB_PORT:-8002}:80"
+    depends_on:
+      airbank-gateway:
+        condition: service_started
+    networks: [ airbank ]
+
+  zipkin:
+    image: openzipkin/zipkin:3
+    container_name: airbank-zipkin
+    profiles: [ observability ]
+    ports:
+      - "9411:9411"
+    networks: [ airbank ]
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: airbank-prometheus
+    profiles: [ observability ]
+    volumes:
+      - ./../observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks: [ airbank ]
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: airbank-grafana
+    profiles: [ observability ]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - ./../observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./../observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "${GRAFANA_HOST_PORT:-3000}:3000"
+    depends_on:
+      - prometheus
+    networks: [ airbank ]
+
+networks:
+  airbank:
+    driver: bridge
+
+volumes:
+  pgdata:

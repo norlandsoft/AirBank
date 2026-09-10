@@ -5,8 +5,9 @@
   面向测试工具验证、人员培训、业务演示的一体化银行仿真环境
 </p>
 
-> **当前状态：详细设计阶段** —— 全套设计文档已完成，见 [文档导航](#-文档导航)。代码实施将按
-> [12-工程规范与实施计划](docs/design/12-工程规范与实施计划.md) 中的里程碑推进。
+> **当前状态：实施完成** —— 全套设计文档见 [文档导航](#-文档导航)（`docs/design/`），
+> 任务级实施计划与执行状态见 [docs/implementation-plan.md](docs/implementation-plan.md)，
+> 实施期偏差记录见 [docs/deviation.md](docs/deviation.md)。
 
 ## 一句话定位
 
@@ -65,20 +66,25 @@ flowchart LR
 | 11 | [测试与培训场景库](docs/design/11-测试与培训场景库.md) | 演示账号、14 个端到端场景（步骤/预期/校验点）、故障演练、造数与压测 |
 | 12 | [工程规范与实施计划](docs/design/12-工程规范与实施计划.md) | 仓库结构、Maven 模块、代码/分支/提交规范、测试策略、里程碑 |
 
-## 快速开始（实施完成后）
+> **实施追踪**：任务级的详细实施计划（M0~M7 工作分解、验收门、需求覆盖矩阵、双人并行方案）见
+> [docs/implementation-plan.md](docs/implementation-plan.md) —— 该文档是活的执行追踪器，任务完成即勾选。
+
+## 快速开始
 
 ```bash
 git clone <repo> && cd AirBank
-mvn -f pom.xml clean package -DskipTests      # 构建后端镜像
-pnpm -r build                                  # 构建两个前端
-docker compose -f deploy/compose/docker-compose.yml --profile full up -d
+./scripts/build.sh                             # Maven 打包 + 构建全部镜像
+docker compose -f deploy/compose/docker-compose.yml up -d
+./scripts/smoke.sh                             # 部署冒烟（G0）
+./scripts/e2e.sh                               # 端到端场景（登录/转账/理财/T+1/日终/核对）
 # 柜面工作台  http://localhost:8001   （柜员 990001 / Abc12345）
 # 网银门户    http://localhost:8002   （客户 zhangsan / Abc12345）
 # Nacos 控制台 http://localhost:8848/nacos  (nacos / nacos)
-# Grafana    http://localhost:3000   （--profile observability）
+# Grafana    http://localhost:3000   （--profile observability，admin/admin）
+# 一键重置    ./scripts/reset.sh
 ```
 
-> 以上演示账号与初始数据由 `deploy/postgres/init` 种子脚本自动创建，仅限培训/测试环境使用。
+> 以上演示账号与初始数据由各服务首启 Seeder 自动创建（含利息科目、理财产品和演示客户），仅限培训/测试环境使用。
 
 ## 目标读者
 

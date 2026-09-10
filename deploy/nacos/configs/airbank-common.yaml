@@ -1,0 +1,6 @@
+# AirBank 共享配置（所有服务订阅；本地 application.yaml 为兜底默认值，此处仅覆盖差异）
+logging:
+  level:
+    com.airbank: info
+    org.springframework: warn
+    org.hibernate: warn

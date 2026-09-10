@@ -1,0 +1,73 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /api/core
+  shutdown: graceful
+spring:
+  application:
+    name: airbank-core
+  config:
+    import: optional:nacos:airbank-common.yaml,optional:nacos:airbank-security.yaml,optional:nacos:airbank-biz-params.yaml,optional:nacos:airbank-core.yaml
+  cloud:
+    nacos:
+      server-addr: ${NACOS_ADDR:localhost:8848}
+      discovery:
+        namespace: ${NACOS_NAMESPACE:airbank-dev}
+        group: AIRBANK_GROUP
+      config:
+        namespace: ${NACOS_NAMESPACE:airbank-dev}
+        group: AIRBANK_GROUP
+  datasource:
+    url: jdbc:postgresql://${PG_HOST:localhost}:${PG_PORT:5432}/airbank_core
+    username: ${DB_USER:core_app}
+    password: ${DB_PASSWORD:AirBank@2026}
+    hikari:
+      maximum-pool-size: 20
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  jackson:
+    time-zone: Asia/Shanghai
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+airbank:
+  params:
+    # 活期年利率（小数）
+    demand-rate: 0.0030
+    # 定期利率表：期限(月) -> 年利率，逗号分隔
+    time-rates: "3:0.0115,6:0.0135,12:0.0155,24:0.0185,36:0.0220"
+    # 定期起存金额（分）
+    time-deposit-min: 100000
+    # 定期到期兑付批量触发 cron（默认 23:35）
+    batch-cron: "0 35 23 * * ?"
+  security:
+    exclude-paths:
+      - /actuator/**
+      - /v3/api-docs/**
+      - /swagger-ui/**
+      - /swagger-ui.html
+      - /error
+      - /internal/**
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
+logging:
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level [%thread] [%X{traceId:-}] %logger{36} - %msg%n"
