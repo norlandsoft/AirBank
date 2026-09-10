@@ -1,71 +1,87 @@
-<p align="center"><img src="resources/icon.png" width="96" alt="AirCode" /></p>
-
-<h1 align="center">AirCode</h1>
+<h1 align="center">🏦 AirBank 云端模拟银行</h1>
 
 <p align="center">
-  以 <a href="https://github.com/deepseek-ai/deepseek-harness">DeepSeek Harness</a> 为内核的 AI 编程工作台 ——<br />
-  <b>自建前端直连 DSH API</b>（无内嵌网页），统一承载 Agent 会话 / IDE / Git / SSH·SFTP / CI·CD。
+  基于 Spring Cloud 微服务架构的<b>分布式模拟银行系统</b><br />
+  面向测试工具验证、人员培训、业务演示的一体化银行仿真环境
 </p>
 
-## 模块
+> **当前状态：详细设计阶段** —— 全套设计文档已完成，见 [文档导航](#-文档导航)。代码实施将按
+> [12-工程规范与实施计划](docs/design/12-工程规范与实施计划.md) 中的里程碑推进。
 
-- 💬 **Agent 会话** — 自研会话前端：`dsh-client` 直连内核（会话列表/流式时间线/工具卡/权限审批/用户提问/斜杠命令/图片附件/子代理嵌套浏览/模型切换），Markdown + Shiki 渲染，长会话虚拟化。
-- 📝 **IDE** — CodeMirror 6 编辑器（VS Code 键位/多光标/搜索）、保存时 prettier 格式化（项目配置优先）、`@codemirror/merge` Diff 审阅、**LSP**（内置 typescript-language-server：补全/悬停/诊断/重命名/⌘⇧O 整理 imports）、文件 watcher 自动重载与冲突提示。
-- 🌿 **Git** — 变更分组暂存、统一 diff 视图、提交/分支/日志，状态栏分支显示，文件变更自动刷新。
-- 🖥️ **服务器** — SSH 连接管理（密码/私钥/Agent，safeStorage 加密凭据）、远端终端（xterm）、SFTP 双栏文件管理与传输队列（进度/取消）。
-- 🚀 **CI/CD** — `.aircode/pipelines/*.yaml` 本地流水线执行器（逐步日志流/超时/取消），GitHub Actions 只读集成 + 状态栏徽标。
-- 🧰 **工作台** — Codex 风活动栏 + 状态栏、⌘K 命令面板（模块/命令/文件模糊打开）、⌘J 底部本地终端（python3 pty.spawn 伪终端，零原生依赖）、档案/内核/插件/日志/设置管理面板。
+## 一句话定位
 
-## 架构
+AirBank 用 **5 个 Spring Cloud 微服务 + 2 个 React 前端**完整模拟一家银行：核心账务（复式记账、存取转、利息、日终批量）、
+理财（产品募集、申赎、收益计提、到期清算）、用户中心（客户/柜员/权限）、以及 **柜面** 与 **网上银行** 两个端到端业务渠道。
+全套系统通过 **Docker Compose 一键部署**，Nacos 作为注册中心与配置中心，PostgreSQL 存储，行业最佳实践的企业级工程结构。
 
-```text
-┌─ Electron Renderer (React 19 + Tailwind 4) ──────────────┐
-│ dsh-client（协议层：wire 编解码 / 重连 / 事件总线）        │
-│ modules/  agent · ide · git · servers · cicd · settings  │
-└───────────────────────▲──────────────────────────────────┘
-                        │ contextBridge IPC（类型三段式）
-┌─ Electron Main (Node) ───────────────────────────────────┐
-│ kernel-proxy ── 内核 HTTP RPC + WS 事件流代理              │
-│   （渲染层 Origin 被内核信任围栏 403，故全流量经主进程）   │
-│ services/  workspace(树/watch) · format(prettier) · git   │
-│            lsp(ts-server) · ssh(safeStorage) · ci · term  │
-│ 既有：runtime/kernel/server/profiles/plugins/setup/logs   │
-└───────────────────────▲──────────────────────────────────┘
-                        │ spawn（契约不变）
-              node <bin> --profile <p> --host 127.0.0.1 --port <n> --no-open
-                        ▼
-              DSH 内核：POST /api/<method> · ws /api/events.{mux,host} · POST /api/respond
+## 服务清单
+
+| 服务 | 说明 | 端口 |
+|---|---|---|
+| `airbank-gateway` | Spring Cloud Gateway 统一接入：鉴权、路由、限流 | 8080 |
+| `airbank-core` | **核心系统**：账户、存取款、转账、复式记账引擎、利息、日终批量 | 8081 |
+| `airbank-wealth` | **理财系统**：产品管理、申购/赎回、份额、收益计提、到期清算 | 8082 |
+| `airbank-uam` | **用户中心**：客户主数据、认证（JWT）、柜员/角色/权限、机构 | 8083 |
+| `airbank-counter` | **柜面系统**：柜员工作台后端、业务受理、复核授权、尾箱、日结 | 8084 |
+| `airbank-ebank` | **网上银行**：客户自助服务后端、转账、理财超市、回单、消息 | 8085 |
+| `airbank-counter-web` | 柜面工作台前端（React + Ant Design Pro 布局） | 8001 |
+| `airbank-ebank-web` | 网银门户前端（React + Ant Design） | 8002 |
+| `nacos` | 注册中心 + 配置中心 | 8848 |
+| `postgres` | PostgreSQL 16（database-per-service，5 个独立库） | 5432 |
+| `redis` | 验证码、幂等预检、分布式锁、缓存 | 6379 |
+| `zipkin` 等 | 链路追踪 / Prometheus / Grafana / Loki（可观测性 profile） | 9411/9090/3000/3100 |
+
+## 架构速览
+
+```mermaid
+flowchart LR
+    CW["柜面工作台<br/>React+AntD"] --> GW["Gateway :8080"]
+    EW["网银门户<br/>React+AntD"] --> GW
+    GW --> CT["柜面系统"] & EB["网银系统"]
+    CT & EB -->|OpenFeign| UAM["用户中心"] & CORE["核心系统"] & WEA["理财系统"]
+    UAM & CORE & WEA & CT & EB -.-> NA["Nacos 注册/配置"]
+    UAM & CORE & WEA & CT & EB --> PG[("PostgreSQL")] & RD[("Redis")]
 ```
 
-协议细节、能力映射与里程碑见 [`docs/frontend-rewrite-design.md`](docs/frontend-rewrite-design.md)（含实施进度与偏差记录）。
+核心业务闭环示例（完整流程见设计文档）：
+**柜面开户 → 现金存款 → 网银注册绑定 → 网银转账 → 网银申购理财 → 日终计提收益 → 到期清算入账 → 柜员日结轧账**。
 
-## 特性
+## 📚 文档导航
 
-- ⚡ **零环境一键运行** — 首次启动自动下载 Node 运行时、pnpm 与 Harness 内核（官方源 / 国内镜像可选），全部装在应用数据目录，不污染系统环境。
-- 🗂️ **档案隔离** — 多档案（dsh profile）管理：会话与插件互不影响。
-- 🧱 **核心管理** — 内核多版本下载、切换与卸载。
-- 🔌 **插件管理** — 查看、安装、卸载当前档案插件（经 `dsh plugin` 转发 pnpm）。
-- 🌐 **中英双语** — 界面语言与深色/浅色主题即时切换。
+全部详细设计位于 [`docs/design/`](docs/design/)，按阅读顺序：
 
-## 开发
+| # | 文档 | 内容 |
+|---|---|---|
+| 01 | [项目概述与需求](docs/design/01-项目概述与需求.md) | 背景目标、用户角色、P0/P1/P2 功能清单、术语表 |
+| 02 | [总体架构设计](docs/design/02-总体架构设计.md) | 架构原则、服务拆分、技术选型与版本矩阵、模块划分、服务通信、Nacos 设计、事务一致性 |
+| 03 | [核心系统业务设计](docs/design/03-核心系统业务设计.md) | 客户/账户模型、会计科目与复式记账引擎、存取转/定期流程、利息、日终批量、编号规则 |
+| 04 | [理财系统业务设计](docs/design/04-理财系统业务设计.md) | 产品生命周期与状态机、申购/赎回/清算全流程、份额与收益、与核心的资金交互与对账 |
+| 05 | [用户中心与渠道设计](docs/design/05-用户中心与渠道设计.md) | 认证授权（JWT/RBAC/验证码/OTP）、柜面受理-复核授权-尾箱-日结、网银全功能、端到端场景 |
+| 06 | [数据模型设计](docs/design/06-数据模型设计.md) | 5 库规划、各域 ER 图、全部表结构（字段/类型/约束/索引） |
+| 07 | [接口设计与规范](docs/design/07-接口设计与规范.md) | REST 规范、统一响应/分页/错误码全表、幂等设计、各服务 API 清单 |
+| 08 | [安全与非功能设计](docs/design/08-安全与非功能设计.md) | 认证鉴权、数据加密与脱敏、审计、容错降级、可观测性（追踪/日志/指标） |
+| 09 | [容器化部署设计](docs/design/09-容器化部署设计.md) | Compose 拓扑、健康检查与启动依赖、Nacos/PG 初始化、profiles、环境变量 |
+| 10 | [前端设计](docs/design/10-前端设计.md) | 工程结构、柜面工作台/网银门户信息架构与页面清单、关键交互、视觉规范 |
+| 11 | [测试与培训场景库](docs/design/11-测试与培训场景库.md) | 演示账号、14 个端到端场景（步骤/预期/校验点）、故障演练、造数与压测 |
+| 12 | [工程规范与实施计划](docs/design/12-工程规范与实施计划.md) | 仓库结构、Maven 模块、代码/分支/提交规范、测试策略、里程碑 |
+
+## 快速开始（实施完成后）
 
 ```bash
-pnpm install
-pnpm dev              # Electron + HMR
+git clone <repo> && cd AirBank
+mvn -f pom.xml clean package -DskipTests      # 构建后端镜像
+pnpm -r build                                  # 构建两个前端
+docker compose -f deploy/compose/docker-compose.yml --profile full up -d
+# 柜面工作台  http://localhost:8001   （柜员 990001 / Abc12345）
+# 网银门户    http://localhost:8002   （客户 zhangsan / Abc12345）
+# Nacos 控制台 http://localhost:8848/nacos  (nacos / nacos)
+# Grafana    http://localhost:3000   （--profile observability）
 ```
 
-## 验证
+> 以上演示账号与初始数据由 `deploy/postgres/init` 种子脚本自动创建，仅限培训/测试环境使用。
 
-```bash
-pnpm typecheck && pnpm test && pnpm build   # 类型 / 131+ 单测 / 构建
-pnpm verify:protocol                        # 对运行中的内核做协议八步验证（只读）
-DSH_VERIFY_LLM=1 pnpm verify:protocol       # 追加 LLM 流式/审批/中断/重连实测
-DSH_DESKTOP_KERNEL_DIR=<内核目录> pnpm smoke # 无 GUI 集成冒烟
-pnpm pack:dir                               # 打包冒烟（免安装器）
-```
+## 目标读者
 
-## 规则摘要（AGENTS.md）
-
-- `services/` 与 `core/` 不得 import electron；electron 仅出现在 index/app/window/tray/menu/ipc/preload。
-- 生产代码改动配同区测试；持久化结构变更需兼容旧数据。
-- dsh 子进程命令行契约固定，勿擅自改动；不擅自 git commit / push。
+- **测试工程师**：用真实业务流验证自动化工具（API/UI/性能），配套[场景库](docs/design/11-测试与培训场景库.md)与造数工具。
+- **培训讲师/新员工**：在沙箱中演练柜面、网银、理财全流程，可反复操作、随时重置。
+- **架构/开发人员**：Spring Cloud + Nacos + PostgreSQL + Docker 的企业级参考实现。
