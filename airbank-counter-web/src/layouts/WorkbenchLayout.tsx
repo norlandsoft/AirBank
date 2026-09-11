@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
-import { Alert, Dropdown } from 'antd';
+import { Dropdown } from 'antd';
 import { BankOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import type { MenuDataItem, ProLayoutProps } from '@ant-design/pro-components';
 import { ProLayout } from '@ant-design/pro-components';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { logout } from '../api/auth';
 import { useAuthStore } from '../stores/auth';
-import { BRAND_COLOR, NAVY_COLOR, TRAINING_BANNER } from '../theme/token';
+import { BRAND_COLOR, NAVY_COLOR } from '../theme/token';
 import { menuIcon } from '../utils/icons';
 import { DEFAULT_MENUS, filterMenus } from '../utils/menu';
 import type { MenuNode } from '../api/types';
@@ -128,15 +128,7 @@ export default function WorkbenchLayout() {
         </div>
       )}
     >
-      <Alert
-        banner
-        type="warning"
-        showIcon
-        message={TRAINING_BANNER}
-        className="ab-banner"
-        style={{ margin: '-20px -24px 0' }}
-      />
-      <div className="ab-page" style={{ marginTop: 16 }}>
+      <div className="ab-page">
         <Outlet />
       </div>
     </ProLayout>

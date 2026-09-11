@@ -9,10 +9,6 @@ export const MONEY_IN_COLOR = '#16A34A';
 export const MONEY_OUT_COLOR = '#DC2626';
 export const WARN_COLOR = '#D97706';
 
-/** 培训环境横幅文案 */
-export const TRAINING_BANNER =
-  'AirBank 柜面工作台 · 培训模拟环境 —— 本系统仅供业务培训与测试演练，非真实资金';
-
 /** 全局字体：英文/数字 IBM Plex Mono，中文回退 Source Han Mono SC */
 export const FONT_STACK =
   "'IBM Plex Mono', 'Source Han Mono SC', ui-monospace, 'SFMono-Regular', 'PingFang SC', 'Microsoft YaHei', Menlo, Consolas, monospace";

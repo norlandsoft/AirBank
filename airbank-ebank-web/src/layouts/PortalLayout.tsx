@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Avatar, Alert, Dropdown, Layout, Menu, Space, Tag, Typography } from 'antd';
+import { Avatar, Dropdown, Layout, Menu, Space, Tag, Typography } from 'antd';
 import type { MenuProps } from 'antd';
 import {
   BankOutlined,
@@ -97,14 +97,6 @@ export default function PortalLayout() {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      {/* 培训环境横幅 */}
-      <Alert
-        banner
-        type="warning"
-        showIcon
-        message="AirBank 网上银行 · 培训模拟环境（非真实资金）"
-        className="ab-banner"
-      />
       <Header
         style={{
           position: 'sticky',
