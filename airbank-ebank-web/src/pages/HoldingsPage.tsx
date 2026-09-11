@@ -123,7 +123,7 @@ export default function HoldingsPage() {
       key: 'income',
       align: 'right',
       render: (_, record) => (
-        <span style={{ color: '#389e0d' }}>
+        <span style={{ color: '#16A34A' }}>
           {fenToYuan(Number(record.accruingIncome) + Number(record.paidIncome))}
         </span>
       ),
@@ -163,7 +163,7 @@ export default function HoldingsPage() {
         </Col>
         <Col xs={24} sm={12}>
           <Card>
-            <Statistic title="累计收益合计（元）" value={fenToYuan(totalIncome)} valueStyle={{ color: '#389e0d' }} />
+            <Statistic title="累计收益合计（元）" value={fenToYuan(totalIncome)} valueStyle={{ color: '#16A34A' }} />
           </Card>
         </Col>
       </Row>

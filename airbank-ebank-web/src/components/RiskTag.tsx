@@ -1,10 +1,10 @@
 import { Tag } from 'antd';
 
-/** 产品风险等级色标：R1 绿 / R2 橙 / R3 红 */
+/** 产品风险等级色标：R1 绿 / R2 琥珀 / R3 红 */
 const RISK_META: Record<string, { color: string; text: string }> = {
-  R1: { color: '#52c41a', text: 'R1 低风险' },
-  R2: { color: '#faad14', text: 'R2 中风险' },
-  R3: { color: '#f5222d', text: 'R3 高风险' },
+  R1: { color: '#16A34A', text: 'R1 低风险' },
+  R2: { color: '#D97706', text: 'R2 中风险' },
+  R3: { color: '#DC2626', text: 'R3 高风险' },
 };
 
 export function riskRank(level?: string | null): number {

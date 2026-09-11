@@ -1,4 +1,4 @@
-# 构建上下文瘦身（后端镜像构建以仓库根为 context）
+# 构建上下文瘦身（后端与前端镜像构建均以仓库根为 context）
 .git
 **/target
 **/node_modules

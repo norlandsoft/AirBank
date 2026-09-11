@@ -56,7 +56,7 @@ export default function Wealth() {
               <Card
                 size="small"
                 hoverable
-                style={active ? { borderColor: '#1B4D92', borderWidth: 2 } : undefined}
+                style={active ? { borderColor: '#1668DC', borderWidth: 2 } : undefined}
                 title={
                   <span>
                     {fmtValue(p.productName)}{' '}
@@ -66,7 +66,7 @@ export default function Wealth() {
                 extra={<Typography.Text code>{fmtValue(p.productCode)}</Typography.Text>}
               >
                 <p style={{ marginBottom: 4 }}>
-                  业绩基准：<b style={{ color: '#d46b08' }}>{fmtValue(p.annualRate)}%</b>
+                  业绩基准：<b style={{ color: '#D97706' }}>{fmtValue(p.annualRate)}%</b>
                 </p>
                 <p style={{ marginBottom: 4 }}>期限：{termText(p)}</p>
                 <p style={{ marginBottom: 12 }}>起购：¥ {fenToYuan(p.minAmount as string | number)}</p>

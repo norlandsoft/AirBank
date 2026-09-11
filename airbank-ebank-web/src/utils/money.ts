@@ -36,10 +36,10 @@ export function signedAmountText(
 ): { text: string; color?: string } {
   const yuan = fenToYuan(amount);
   if (direction === 'DEBIT' || direction === 'DR' || direction === 'OUT') {
-    return { text: `-${yuan}`, color: '#cf1322' };
+    return { text: `-${yuan}`, color: '#DC2626' };
   }
   if (direction === 'CREDIT' || direction === 'CR' || direction === 'IN') {
-    return { text: `+${yuan}`, color: '#389e0d' };
+    return { text: `+${yuan}`, color: '#16A34A' };
   }
   return { text: yuan };
 }

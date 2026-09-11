@@ -227,7 +227,7 @@ export default function WealthPage() {
                 >
                   <Row align="bottom" gutter={8}>
                     <Col>
-                      <Typography.Text style={{ fontSize: 32, color: '#0E8A8A', fontWeight: 600, lineHeight: 1 }}>
+                      <Typography.Text style={{ fontSize: 32, color: '#0D9488', fontWeight: 600, lineHeight: 1 }}>
                         {formatRate(p.annualRate)}
                       </Typography.Text>
                     </Col>
@@ -274,7 +274,7 @@ export default function WealthPage() {
           <>
             <Row align="bottom" gutter={8} style={{ marginBottom: 16 }}>
               <Col>
-                <Typography.Text style={{ fontSize: 40, color: '#0E8A8A', fontWeight: 600, lineHeight: 1 }}>
+                <Typography.Text style={{ fontSize: 40, color: '#0D9488', fontWeight: 600, lineHeight: 1 }}>
                   {formatRate(detail.annualRate)}
                 </Typography.Text>
               </Col>

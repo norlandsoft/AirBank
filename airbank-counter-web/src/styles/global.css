@@ -1,0 +1,228 @@
+/* ============================================================
+   AirBank 柜面工作台 · 全局样式
+   字体：IBM Plex Mono（英文/数字）+ Source Han Mono SC（中文）
+   设计基调：深蓝专业 · 简洁现代 · 低噪点
+   ============================================================ */
+
+/* ---------- 字体嵌入 ---------- */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Source Han Mono SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/SourceHanMonoSC-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Source Han Mono SC';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/SourceHanMonoSC-700.woff2') format('woff2');
+}
+
+/* ---------- 设计变量 ---------- */
+:root {
+  --ab-font-stack: 'IBM Plex Mono', 'Source Han Mono SC', ui-monospace, 'SFMono-Regular',
+    'PingFang SC', 'Microsoft YaHei', Menlo, Consolas, monospace;
+
+  --ab-primary: #1668dc;
+  --ab-primary-deep: #0f4bab;
+  --ab-navy-900: #0c1c38;
+  --ab-navy-800: #10264a;
+  --ab-navy-700: #16325e;
+
+  --ab-bg-layout: #f4f6fa;
+  --ab-bg-container: #ffffff;
+  --ab-border: #e6eaf2;
+  --ab-text-1: #1f2d3d;
+  --ab-text-2: #5b6b84;
+  --ab-text-3: #8a97ad;
+
+  --ab-success: #16a34a;
+  --ab-danger: #dc2626;
+  --ab-warning: #d97706;
+
+  --ab-shadow-card: 0 1px 2px rgba(12, 28, 56, 0.04), 0 2px 8px rgba(12, 28, 56, 0.04);
+  --ab-shadow-card-hover: 0 2px 4px rgba(12, 28, 56, 0.06), 0 10px 28px rgba(12, 28, 56, 0.1);
+  --ab-shadow-pop: 0 12px 40px rgba(12, 28, 56, 0.18);
+}
+
+/* ---------- 基础 ---------- */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--ab-font-stack);
+  color: var(--ab-text-1);
+  background: var(--ab-bg-layout);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-variant-ligatures: none;
+}
+
+::selection {
+  background: rgba(22, 104, 220, 0.16);
+}
+
+/* 细滚动条：安静、现代 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c3ccdb transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #c9d2e0;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #a8b4c9;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 键盘可达性：统一焦点环 */
+:focus-visible {
+  outline: 2px solid rgba(22, 104, 220, 0.45);
+  outline-offset: 1px;
+}
+
+/* ---------- 页面动效 ---------- */
+@keyframes ab-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.ab-page {
+  animation: ab-fade-up 0.28s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ab-page {
+    animation: none;
+  }
+}
+
+/* 卡片悬浮抬升 */
+.ab-hover {
+  transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+}
+.ab-hover:hover {
+  box-shadow: var(--ab-shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+/* ---------- antd 细节校准 ---------- */
+/* 表格：更轻的分隔与更舒适的行距 */
+.ant-table-wrapper .ant-table {
+  font-size: 13px;
+}
+.ant-table-wrapper .ant-table-thead > tr > th {
+  font-weight: 600;
+}
+.ant-table-wrapper .ant-table-tbody > tr > td {
+  transition: background 0.18s ease;
+}
+
+/* 统计数字：等宽字体天然对齐，微调字距 */
+.ant-statistic-content {
+  letter-spacing: -0.01em;
+}
+
+/* 登录分屏品牌面板 */
+.ab-login-pane {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(168deg, var(--ab-navy-900) 0%, var(--ab-navy-800) 52%, #14356b 100%);
+  color: #fff;
+}
+.ab-login-pane::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(200deg, rgba(0, 0, 0, 0.9), transparent 68%);
+  -webkit-mask-image: linear-gradient(200deg, rgba(0, 0, 0, 0.9), transparent 68%);
+  pointer-events: none;
+}
+.ab-login-pane::after {
+  content: '';
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  right: -180px;
+  bottom: -220px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(22, 104, 220, 0.35), transparent);
+  pointer-events: none;
+}
+@media (max-width: 860px) {
+  .ab-login-pane {
+    display: none;
+  }
+}
+
+/* 品牌徽标 */
+.ab-logo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: linear-gradient(140deg, #2b7de9 0%, var(--ab-primary) 55%, var(--ab-primary-deep) 100%);
+  box-shadow: 0 4px 12px rgba(22, 104, 220, 0.35);
+  flex-shrink: 0;
+}
+
+/* 培训环境横幅：更轻的存在感 */
+.ab-banner.ant-alert-banner {
+  border-bottom: 1px solid rgba(217, 119, 6, 0.18);
+  background: linear-gradient(90deg, #fffaf0, #fff7e6);
+}
+.ab-banner .ant-alert-message {
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+}

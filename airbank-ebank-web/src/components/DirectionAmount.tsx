@@ -10,10 +10,10 @@ export default function DirectionAmount({
 }) {
   const yuan = fenToYuan(amount);
   if (direction === 'DEBIT' || direction === 'DR' || direction === 'OUT') {
-    return <span style={{ color: '#cf1322' }}>-{yuan}</span>;
+    return <span style={{ color: '#DC2626' }}>-{yuan}</span>;
   }
   if (direction === 'CREDIT' || direction === 'CR' || direction === 'IN') {
-    return <span style={{ color: '#389e0d' }}>+{yuan}</span>;
+    return <span style={{ color: '#16A34A' }}>+{yuan}</span>;
   }
   return <span>{yuan}</span>;
 }

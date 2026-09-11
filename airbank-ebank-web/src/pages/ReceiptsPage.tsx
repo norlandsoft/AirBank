@@ -43,8 +43,8 @@ function ReceiptContent({ receipt }: { receipt: ReceiptVO }) {
           </Divider>
           <pre
             style={{
-              background: '#fafafa',
-              border: '1px solid #f0f0f0',
+              background: 'var(--ab-bg-layout, #F3F7F6)',
+              border: '1px solid var(--ab-border, #E4EBE9)',
               borderRadius: 6,
               padding: 12,
               fontSize: 13,
@@ -59,8 +59,8 @@ function ReceiptContent({ receipt }: { receipt: ReceiptVO }) {
       {typeof content === 'string' && (
         <pre
           style={{
-            background: '#fafafa',
-            border: '1px solid #f0f0f0',
+            background: 'var(--ab-bg-layout, #F3F7F6)',
+            border: '1px solid var(--ab-border, #E4EBE9)',
             borderRadius: 6,
             padding: 12,
             fontSize: 13,

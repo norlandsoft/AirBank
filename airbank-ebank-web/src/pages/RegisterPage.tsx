@@ -79,7 +79,7 @@ export default function RegisterPage() {
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        background: 'linear-gradient(135deg, #0E8A8A 0%, #0a6b6b 55%, #084c4c 100%)',
+        background: 'linear-gradient(165deg, #0f766e 0%, #0d9488 48%, #14b8a6 100%)',
       }}
     >
       <div style={{ textAlign: 'center', marginTop: 48 }}>
@@ -91,7 +91,7 @@ export default function RegisterPage() {
         </Typography.Text>
       </div>
       <div style={{ flex: 1, display: 'flex', justifyContent: 'center', paddingTop: 32, paddingBottom: 48 }}>
-        <Card style={{ width: 520, height: 'fit-content', boxShadow: '0 8px 24px rgba(0,0,0,0.18)' }}>
+        <Card style={{ width: 520, height: 'fit-content', borderRadius: 14, boxShadow: '0 12px 40px rgba(6, 41, 37, 0.28)' }}>
           <Steps current={current} items={STEPS.map((t) => ({ title: t }))} style={{ marginBottom: 32 }} />
 
           {current === 0 && (

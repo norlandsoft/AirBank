@@ -48,7 +48,7 @@ export default function VoucherModal({ voucher, onClose }: Props) {
 
   return (
     <Modal open onCancel={onClose} footer={null} title="电子回执" width={640}>
-      <div style={{ position: 'relative', border: '1px solid #eee', borderRadius: 8, padding: 24 }}>
+      <div style={{ position: 'relative', border: '1px solid var(--ab-border, #E6EAF2)', borderRadius: 10, padding: 24 }}>
         <div
           aria-hidden
           style={{
@@ -56,8 +56,8 @@ export default function VoucherModal({ voucher, onClose }: Props) {
             top: 12,
             right: 20,
             transform: 'rotate(-12deg)',
-            border: '3px solid #cf1322',
-            color: '#cf1322',
+            border: '3px solid #DC2626',
+            color: '#DC2626',
             borderRadius: 6,
             padding: '4px 12px',
             fontWeight: 700,
@@ -65,13 +65,13 @@ export default function VoucherModal({ voucher, onClose }: Props) {
             letterSpacing: 2,
             opacity: 0.85,
             pointerEvents: 'none',
-            background: 'rgba(207,19,34,0.04)',
+            background: 'rgba(220, 38, 38, 0.04)',
           }}
         >
           AirBank 培训环境专用
         </div>
         <div style={{ marginBottom: 12 }}>
-          <Tag color="#1B4D92">AirBank</Tag>
+          <Tag color="#1668DC">AirBank</Tag>
           <Tag color="red">培训凭证 · 非真实资金</Tag>
         </div>
         <Descriptions bordered column={1} size="small" items={items} />

@@ -264,8 +264,8 @@ services:
 
   airbank-counter-web:
     build:
-      context: ../../airbank-counter-web
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: airbank-counter-web/Dockerfile
     image: airbank/counter-web:${IMAGE_TAG:-latest}
     container_name: airbank-counter-web
     ports:
@@ -277,8 +277,8 @@ services:
 
   airbank-ebank-web:
     build:
-      context: ../../airbank-ebank-web
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: airbank-ebank-web/Dockerfile
     image: airbank/ebank-web:${IMAGE_TAG:-latest}
     container_name: airbank-ebank-web
     ports:

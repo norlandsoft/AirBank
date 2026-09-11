@@ -29,6 +29,15 @@ const RISK_LEVEL_COLORS: Record<string, string> = {
   C5: 'red',
 };
 
+/** 品牌徽标：渐变圆角方块 */
+function LogoBadge({ size = 30 }: { size?: number }) {
+  return (
+    <span className="ab-logo-badge" style={{ width: size, height: size }}>
+      <BankOutlined style={{ fontSize: size * 0.52, color: '#fff' }} />
+    </span>
+  );
+}
+
 export default function PortalLayout() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -92,24 +101,29 @@ export default function PortalLayout() {
       <Alert
         banner
         type="warning"
+        showIcon
         message="AirBank 网上银行 · 培训模拟环境（非真实资金）"
-        style={{ backgroundColor: '#fffbe6', borderBottom: '1px solid #ffe58f' }}
+        className="ab-banner"
       />
       <Header
         style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 20,
           display: 'flex',
           alignItems: 'center',
           paddingInline: 24,
-          boxShadow: '0 1px 4px rgba(0, 21, 41, 0.08)',
-          zIndex: 10,
+          backdropFilter: 'saturate(1.6) blur(10px)',
+          WebkitBackdropFilter: 'saturate(1.6) blur(10px)',
+          boxShadow: 'var(--ab-shadow-header)',
         }}
       >
         <div
-          style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0 }}
+          style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', flexShrink: 0 }}
           onClick={() => navigate('/home')}
         >
-          <BankOutlined style={{ fontSize: 24, color: BRAND_COLOR, marginRight: 8 }} />
-          <Typography.Text strong style={{ fontSize: 17, color: BRAND_COLOR }}>
+          <LogoBadge />
+          <Typography.Text strong style={{ fontSize: 16.5, letterSpacing: '0.01em' }}>
             AirBank 网上银行
           </Typography.Text>
         </div>
@@ -118,28 +132,36 @@ export default function PortalLayout() {
           items={menuItems}
           selectedKeys={[selectedKey]}
           onClick={({ key }) => navigate(key)}
-          style={{ flex: 1, minWidth: 0, justifyContent: 'flex-end', borderBottom: 'none', paddingLeft: 16 }}
+          style={{ flex: 1, minWidth: 0, justifyContent: 'flex-end', borderBottom: 'none', paddingLeft: 24, background: 'transparent' }}
         />
-        <Space style={{ flexShrink: 0, marginLeft: 12 }}>
+        <Space style={{ flexShrink: 0, marginLeft: 16 }}>
           {user?.riskLevel ? (
-            <Tag color={RISK_LEVEL_COLORS[user.riskLevel] ?? 'default'} style={{ marginRight: 0 }}>
+            <Tag color={RISK_LEVEL_COLORS[user.riskLevel] ?? 'default'} style={{ marginRight: 0, borderRadius: 6 }}>
               风险 {user.riskLevel}
             </Tag>
           ) : null}
           <Dropdown menu={{ items: userMenu }} placement="bottomRight">
-            <Space style={{ cursor: 'pointer' }}>
-              <Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: BRAND_COLOR }} />
+            <Space style={{ cursor: 'pointer', padding: '4px 8px', borderRadius: 8, transition: 'background .2s' }}>
+              <Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: BRAND_COLOR, borderRadius: 8 }} />
               <Typography.Text>{user?.realName || user?.loginName || '客户'}</Typography.Text>
             </Space>
           </Dropdown>
         </Space>
       </Header>
-      <Content style={{ padding: '20px 24px' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+      <Content style={{ padding: '24px 24px 40px' }}>
+        <div className="ab-page" style={{ maxWidth: 1200, margin: '0 auto' }}>
           <Outlet />
         </div>
       </Content>
-      <Footer style={{ textAlign: 'center', color: '#999', fontSize: 12 }}>
+      <Footer
+        style={{
+          textAlign: 'center',
+          color: 'var(--ab-text-3, #8BA09C)',
+          fontSize: 12,
+          borderTop: '1px solid var(--ab-border, #E4EBE9)',
+          background: 'transparent',
+        }}
+      >
         AirBank 培训模拟银行 · 本系统仅用于业务培训与测试，不涉及真实资金
       </Footer>
     </Layout>

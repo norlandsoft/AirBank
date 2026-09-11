@@ -64,8 +64,8 @@ function AccountsTab() {
               size="small"
               style={
                 acct.acctType === 'DEMAND'
-                  ? { background: 'linear-gradient(135deg, #0E8A8A 0%, #0b6b6b 100%)', border: 'none' }
-                  : { background: 'linear-gradient(135deg, #2f54eb 0%, #1d39c4 100%)', border: 'none' }
+                  ? { background: 'linear-gradient(135deg, #14b8a6 0%, #0d9488 48%, #0f766e 100%)', border: 'none', borderRadius: 12 }
+                  : { background: 'linear-gradient(135deg, #475569 0%, #334155 55%, #1e293b 100%)', border: 'none', borderRadius: 12 }
               }
             >
               <Typography.Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>

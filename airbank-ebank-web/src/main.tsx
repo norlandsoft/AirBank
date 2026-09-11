@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import App from './App';
 import { brandTheme } from './theme/token';
+import './styles/global.css';
 
 dayjs.locale('zh-cn');
 
