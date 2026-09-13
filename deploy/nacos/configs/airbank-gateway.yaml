@@ -17,4 +17,5 @@ airbank:
         - /api/ebank/internal/**
         - /api/core/internal/**
         - /api/wealth/internal/**
+        - /api/loan/internal/**
         - /api/counter/internal/**

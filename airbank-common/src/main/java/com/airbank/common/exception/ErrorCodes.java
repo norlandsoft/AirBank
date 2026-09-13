@@ -2,7 +2,7 @@ package com.airbank.common.exception;
 
 /**
  * 全行错误码分段（docs/design/07 §4）：
- * 0 成功 · 1000~1999 通用 · 2000~ UAM · 3000~ CORE · 4000~ WEALTH · 5000~ COUNTER · 6000~ EBANK · 7000~ GATEWAY。
+ * 0 成功 · 1000~1999 通用 · 2000~ UAM · 3000~ CORE · 4000~ WEALTH · 5000~ COUNTER · 6000~ EBANK · 7000~ GATEWAY · 8000~ LOAN。
  */
 public interface ErrorCodes {
 
@@ -76,4 +76,18 @@ public interface ErrorCodes {
     int RATE_LIMITED = 7003;
     int ROUTE_NOT_FOUND = 7004;
     int DOWNSTREAM_UNAVAILABLE = 7005;
+
+    // 小额信贷
+    int LOAN_PRODUCT_NOT_FOUND = 8001;
+    int LOAN_PRODUCT_UNAVAILABLE = 8002;
+    int LOAN_AMOUNT_INVALID = 8003;
+    int LOAN_TERM_INVALID = 8004;
+    int ID_CHECK_FAILED = 8005;
+    int CREDIT_REJECTED = 8006;
+    int LOAN_NOT_FOUND = 8007;
+    int LOAN_STATUS_DENY = 8008;
+    int REPAY_MODE_INVALID = 8009;
+    int LOAN_DISBURSE_FAILED = 8010;
+    int LOAN_REPAY_FAILED = 8011;
+    int APPLY_STATUS_DENY = 8012;
 }

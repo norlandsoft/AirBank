@@ -78,6 +78,7 @@
             <dependency><groupId>com.airbank</groupId><artifactId>airbank-api-uam</artifactId><version>1.0.0</version></dependency>
             <dependency><groupId>com.airbank</groupId><artifactId>airbank-api-core</artifactId><version>1.0.0</version></dependency>
             <dependency><groupId>com.airbank</groupId><artifactId>airbank-api-wealth</artifactId><version>1.0.0</version></dependency>
+            <dependency><groupId>com.airbank</groupId><artifactId>airbank-api-loan</artifactId><version>1.0.0</version></dependency>
         </dependencies>
     </dependencyManagement>
 </project>

@@ -36,26 +36,34 @@ public class DataSeeder implements ApplicationRunner {
 
     private static final String[][] SUBJECTS = {
             {"1010", "库存现金", "ASSET", "DR"},
+            {"1221", "个人小额贷款", "ASSET", "DR"},
             {"2011", "个人活期存款", "LIABILITY", "CR"},
             {"2012", "个人定期存款", "LIABILITY", "CR"},
             {"2061", "代理理财资金", "LIABILITY", "CR"},
             {"6011", "利息支出-存款利息", "EXPENSE", "DR"},
             {"6012", "利息支出-理财收益", "EXPENSE", "DR"},
+            {"6021", "利息收入-贷款利息", "INCOME", "CR"},
             {"6051", "中间业务收入", "INCOME", "CR"}};
 
     @Override
     public void run(ApplicationArguments args) {
-        if (subjectMapper.selectCount(null) == 0) {
-            for (String[] s : SUBJECTS) {
-                GlSubject subj = new GlSubject();
-                subj.setSubjectCode(s[0]);
-                subj.setSubjectName(s[1]);
-                subj.setCategory(s[2]);
-                subj.setDirection(s[3]);
-                subj.setStatus("ACTIVE");
-                subjectMapper.insert(subj);
+        // 逐科目幂等补种（升级环境可追加新科目，如小额信贷 1221/6021）
+        int added = 0;
+        for (String[] s : SUBJECTS) {
+            if (subjectMapper.selectById(s[0]) != null) {
+                continue;
             }
-            log.info("[seed] GL subjects ready");
+            GlSubject subj = new GlSubject();
+            subj.setSubjectCode(s[0]);
+            subj.setSubjectName(s[1]);
+            subj.setCategory(s[2]);
+            subj.setDirection(s[3]);
+            subj.setStatus("ACTIVE");
+            subjectMapper.insert(subj);
+            added++;
+        }
+        if (added > 0) {
+            log.info("[seed] GL subjects added: {}", added);
         }
         if (accountMapper.selectCount(null) > 0) {
             return;

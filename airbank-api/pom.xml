@@ -14,5 +14,6 @@
         <module>airbank-api-uam</module>
         <module>airbank-api-core</module>
         <module>airbank-api-wealth</module>
+        <module>airbank-api-loan</module>
     </modules>
 </project>

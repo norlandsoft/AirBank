@@ -29,6 +29,9 @@ spring:
         - id: wealth
           uri: lb://airbank-wealth
           predicates: [ "Path=/api/wealth/**" ]
+        - id: loan
+          uri: lb://airbank-loan
+          predicates: [ "Path=/api/loan/**" ]
         - id: counter
           uri: lb://airbank-counter
           predicates: [ "Path=/api/counter/**" ]

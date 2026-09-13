@@ -15,6 +15,7 @@
         <dependency><groupId>com.airbank</groupId><artifactId>airbank-api-uam</artifactId></dependency>
         <dependency><groupId>com.airbank</groupId><artifactId>airbank-api-core</artifactId></dependency>
         <dependency><groupId>com.airbank</groupId><artifactId>airbank-api-wealth</artifactId></dependency>
+        <dependency><groupId>com.airbank</groupId><artifactId>airbank-api-loan</artifactId></dependency>
         <dependency><groupId>com.alibaba.cloud</groupId><artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId></dependency>
         <dependency><groupId>com.alibaba.cloud</groupId><artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId></dependency>
         <dependency><groupId>org.springframework.cloud</groupId><artifactId>spring-cloud-starter-openfeign</artifactId></dependency>

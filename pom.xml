@@ -17,6 +17,7 @@
         <module>airbank-uam</module>
         <module>airbank-core</module>
         <module>airbank-wealth</module>
+        <module>airbank-loan</module>
         <module>airbank-counter</module>
         <module>airbank-ebank</module>
     </modules>

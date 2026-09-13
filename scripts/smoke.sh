@@ -11,6 +11,7 @@ check gateway      "$GATEWAY/actuator/health"                          '"status"
 check uam          "$GATEWAY/api/uam/actuator/health"                  '"status":"UP"'
 check core         "$GATEWAY/api/core/actuator/health"                 '"status":"UP"'
 check wealth       "$GATEWAY/api/wealth/actuator/health"               '"status":"UP"'
+check loan         "$GATEWAY/api/loan/actuator/health"                 '"status":"UP"'
 check counter      "$GATEWAY/api/counter/actuator/health"              '"status":"UP"'
 check ebank        "$GATEWAY/api/ebank/actuator/health"                '"status":"UP"'
 check captcha      "$GATEWAY/api/uam/auth/captcha"                     'svg'

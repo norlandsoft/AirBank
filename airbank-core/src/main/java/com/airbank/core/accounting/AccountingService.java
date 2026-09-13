@@ -47,6 +47,9 @@ public class AccountingService {
     public static final String T_WEALTH_SUBSCRIBE = "WEALTH_SUBSCRIBE";
     public static final String T_WEALTH_REDEEM = "WEALTH_REDEEM";
     public static final String T_WEALTH_INCOME = "WEALTH_INCOME";
+    public static final String T_LOAN_DISBURSE = "LOAN_DISBURSE";
+    public static final String T_LOAN_REPAY_PRINCIPAL = "LOAN_REPAY_PRINCIPAL";
+    public static final String T_LOAN_REPAY_INTEREST = "LOAN_REPAY_INTEREST";
     public static final String T_REVERSAL = "REVERSAL";
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -70,6 +73,10 @@ public class AccountingService {
             case T_WEALTH_SUBSCRIBE -> new Spec("2011", Side.FROM, "2061", Side.NONE);
             case T_WEALTH_REDEEM -> new Spec("2061", Side.NONE, "2011", Side.TO);
             case T_WEALTH_INCOME -> new Spec("6012", Side.NONE, "2011", Side.TO);
+            // 小额信贷（docs/design/13 §5）：放款 借 1221 贷款 / 贷 2011 活期；还款本金/利息分两笔记
+            case T_LOAN_DISBURSE -> new Spec("1221", Side.NONE, "2011", Side.TO);
+            case T_LOAN_REPAY_PRINCIPAL -> new Spec("2011", Side.FROM, "1221", Side.NONE);
+            case T_LOAN_REPAY_INTEREST -> new Spec("2011", Side.FROM, "6021", Side.NONE);
             default -> throw BizException.of(ErrorCodes.PARAM_INVALID, "不支持的业务类型: " + txnType);
         };
     }

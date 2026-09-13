@@ -41,6 +41,15 @@ SUB=$(curl -sf -X POST "$GW/api/wealth/orders/subscribe" -H "$AUTH" -H 'Content-
   -d "{\"requestNo\":\"$REQ-SUB\",\"customerId\":\"1\",\"acctNo\":\"$ZS\",\"productCode\":\"WB001\",\"amount\":100000,\"channel\":\"OPENAPI\",\"operator\":\"e2e\"}")
 echo "$SUB" | grep -q '"status":"PAY_SUCCESS"' && echo "PASS subscribe" || { echo "FAIL subscribe: $SUB"; echo "提示：E2E 会推进业务状态（产品售出即转存续期），请先执行 ./scripts/reset.sh 重置环境"; exit 1; }
 
+echo "== 3b. 小额贷款 LN002 申请 5000.00 → 审批放款 → 还一期 =="
+APP=$(curl -sf -X POST "$GW/api/loan/applications" -H "$AUTH" -H 'Content-Type: application/json' \
+  -d "{\"requestNo\":\"$REQ-LOAN\",\"customerId\":\"1\",\"productCode\":\"LN002\",\"amount\":500000,\"termMonths\":6,\"purpose\":\"e2e 演示\",\"acctNo\":\"$ZS\",\"channel\":\"OPENAPI\",\"operator\":\"e2e\"}")
+echo "$APP" | grep -q '"status":"DISBURSED"' && echo "PASS loan apply+disburse" || { echo "FAIL loan apply: $APP"; exit 1; }
+LOANNO=$(echo "$APP" | jget "d['data']['loanNo']")
+RP=$(curl -sf -X POST "$GW/api/loan/loans/repay" -H "$AUTH" -H 'Content-Type: application/json' \
+  -d "{\"requestNo\":\"$REQ-RP\",\"loanNo\":\"$LOANNO\",\"customerId\":\"1\",\"acctNo\":\"$ZS\",\"repayMode\":\"INSTALLMENT\",\"channel\":\"OPENAPI\",\"operator\":\"e2e\"}")
+echo "$RP" | grep -q '"status":"SUCCESS"' && echo "PASS loan repay(installment)" || { echo "FAIL loan repay: $RP"; exit 1; }
+
 echo "== 4. T+1 确认 + 收益计提（快进至明日） =="
 TOMORROW=$(date -v+1d +%Y-%m-%d 2>/dev/null || date -d tomorrow +%Y-%m-%d)
 curl -sf -X POST "$GW/api/wealth/internal/batch/confirm/trigger?batchDate=$TOMORROW" >/dev/null

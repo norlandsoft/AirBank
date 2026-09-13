@@ -44,6 +44,7 @@ public class OtpService {
             case "TRANSFER" -> "转账汇款";
             case "LIMIT" -> "限额调整";
             case "WEALTH" -> "理财申赎";
+            case "LOAN" -> "贷款申请/还款";
             case "REGISTER" -> "网银注册";
             default -> scene == null ? "业务" : scene;
         };

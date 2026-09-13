@@ -8,6 +8,8 @@ import TransferPage from './pages/TransferPage';
 import WealthPage from './pages/WealthPage';
 import HoldingsPage from './pages/HoldingsPage';
 import WealthOrdersPage from './pages/WealthOrdersPage';
+import LoanPage from './pages/LoanPage';
+import MyLoansPage from './pages/MyLoansPage';
 import AccountsPage from './pages/AccountsPage';
 import ReceiptsPage from './pages/ReceiptsPage';
 import RiskPage from './pages/RiskPage';
@@ -26,6 +28,8 @@ export default function App() {
           <Route path="/wealth" element={<WealthPage />} />
           <Route path="/wealth/holdings" element={<HoldingsPage />} />
           <Route path="/wealth/orders" element={<WealthOrdersPage />} />
+          <Route path="/loan" element={<LoanPage />} />
+          <Route path="/loan/my" element={<MyLoansPage />} />
           <Route path="/accounts" element={<AccountsPage />} />
           <Route path="/receipts" element={<ReceiptsPage />} />
           <Route path="/risk" element={<RiskPage />} />

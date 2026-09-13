@@ -200,6 +200,33 @@ services:
         condition: service_started
     networks: [ airbank ]
 
+  airbank-loan:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/backend.Dockerfile
+      args: { MODULE: airbank-loan }
+    image: airbank/loan:${IMAGE_TAG:-latest}
+    container_name: airbank-loan
+    environment:
+      <<: *backend-env
+    ports:
+      - "127.0.0.1:${LOAN_HOST_PORT:-8086}:8086"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://127.0.0.1:8086/api/loan/actuator/health | grep -q UP" ]
+      <<: *backend-health
+    depends_on:
+      nacos:
+        condition: service_healthy
+      nacos-init:
+        condition: service_completed_successfully
+      pg-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      airbank-core:
+        condition: service_started
+    networks: [ airbank ]
+
   airbank-counter:
     build:
       context: ../..
@@ -260,6 +287,8 @@ services:
         condition: service_healthy
       airbank-wealth:
         condition: service_healthy
+      airbank-loan:
+        condition: service_started
     networks: [ airbank ]
 
   airbank-counter-web:

@@ -31,6 +31,18 @@ const STATUS_META: Record<string, { color: string; text: string }> = {
   BROKEN_EARLY: { color: 'orange', text: '提前支取' },
   // 网银流水
   POSTED: { color: 'green', text: '已入账' },
+  // 贷款申请
+  SUBMITTED: { color: 'default', text: '已提交' },
+  ID_CHECKED: { color: 'blue', text: '核查通过' },
+  CREDIT_CHECKED: { color: 'blue', text: '征信已查' },
+  APPROVED: { color: 'cyan', text: '审批通过' },
+  REJECTED: { color: 'red', text: '审批拒绝' },
+  DISBURSED: { color: 'green', text: '已放款' },
+  DISBURSE_FAILED: { color: 'red', text: '放款失败' },
+  // 借据 / 还款计划
+  REPAYING: { color: 'blue', text: '还款中' },
+  PENDING: { color: 'orange', text: '待还' },
+  PAID: { color: 'green', text: '已还' },
 };
 
 export default function StatusBadge({ status }: { status?: string | null }) {

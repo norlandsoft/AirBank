@@ -159,3 +159,88 @@ export interface ProfileVO {
   mobile?: string;
   riskLevel?: string;
 }
+
+// ---------- 小额信贷 ----------
+
+export interface LoanProductVO {
+  productCode: string;
+  productName: string;
+  description?: string;
+  /** 单位：分 */
+  minAmount: string;
+  maxAmount: string;
+  /** 可选期限（月），逗号分隔，如 "3,6,12,24,36" */
+  termOptions: string;
+  /** 基准年化利率（小数，如 0.072） */
+  annualRate: number;
+  repayMethod: string;
+  minScore: number;
+  status: string;
+}
+
+export interface LoanApplicationVO {
+  applyNo: string;
+  productCode: string;
+  productName?: string;
+  amount: string;
+  termMonths: number;
+  purpose?: string;
+  acctNo: string;
+  status: string;
+  idCheckResult?: string;
+  creditScore?: number;
+  approveAmount?: string;
+  approveRate?: number;
+  rejectReason?: string;
+  loanNo?: string;
+  createdAt?: string;
+}
+
+export interface LoanAccountVO {
+  loanNo: string;
+  applyNo?: string;
+  productCode: string;
+  productName?: string;
+  principal: string;
+  annualRate: number;
+  termMonths: number;
+  repayMethod: string;
+  acctNo: string;
+  disburseDate?: string;
+  remainPrincipal: string;
+  paidPrincipal: string;
+  paidInterest: string;
+  status: string;
+  nextDueDate?: string;
+  nextDueAmount?: string;
+  createdAt?: string;
+}
+
+export interface LoanScheduleVO {
+  periodNo: number;
+  dueDate: string;
+  principal: string;
+  interest: string;
+  total: string;
+  status: string;
+  paidAt?: string;
+}
+
+export interface LoanRepaymentVO {
+  repayNo: string;
+  loanNo: string;
+  repayMode: string;
+  periodNo?: number;
+  amount: string;
+  principalPart: string;
+  interestPart: string;
+  status: string;
+  failReason?: string;
+  createdAt?: string;
+}
+
+export interface LoanDetailVO {
+  account: LoanAccountVO;
+  schedules: LoanScheduleVO[];
+  repayments: LoanRepaymentVO[];
+}

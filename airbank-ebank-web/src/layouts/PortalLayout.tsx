@@ -8,6 +8,7 @@ import {
   FundOutlined,
   HomeOutlined,
   LogoutOutlined,
+  PayCircleOutlined,
   SafetyCertificateOutlined,
   SettingOutlined,
   SwapOutlined,
@@ -58,6 +59,15 @@ export default function PortalLayout() {
           { key: '/wealth/orders', label: '交易记录' },
         ],
       },
+      {
+        key: '/loan',
+        icon: <PayCircleOutlined />,
+        label: '贷款',
+        children: [
+          { key: '/loan', label: '贷款超市' },
+          { key: '/loan/my', label: '我的贷款' },
+        ],
+      },
       { key: '/accounts', icon: <WalletOutlined />, label: '我的账户' },
       { key: '/receipts', icon: <FileDoneOutlined />, label: '电子回单' },
       { key: '/risk', icon: <SafetyCertificateOutlined />, label: '风险测评' },
@@ -70,9 +80,10 @@ export default function PortalLayout() {
   // 选中态：财富子路由高亮对应子项
   const selectedKey = useMemo(() => {
     const path = location.pathname;
-    const flatKeys = ['/home', '/transfer', '/wealth', '/wealth/holdings', '/wealth/orders', '/accounts', '/receipts', '/risk', '/messages', '/settings'];
+    const flatKeys = ['/home', '/transfer', '/wealth', '/wealth/holdings', '/wealth/orders', '/loan', '/loan/my', '/accounts', '/receipts', '/risk', '/messages', '/settings'];
     if (flatKeys.includes(path)) return path;
     if (path.startsWith('/wealth')) return '/wealth';
+    if (path.startsWith('/loan')) return '/loan';
     return '/home';
   }, [location.pathname]);
 

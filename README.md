@@ -11,8 +11,9 @@
 
 ## 一句话定位
 
-AirBank 用 **5 个 Spring Cloud 微服务 + 2 个 React 前端**完整模拟一家银行：核心账务（复式记账、存取转、利息、日终批量）、
-理财（产品募集、申赎、收益计提、到期清算）、用户中心（客户/柜员/权限）、以及 **柜面** 与 **网上银行** 两个端到端业务渠道。
+AirBank 用 **6 个 Spring Cloud 微服务 + 2 个 React 前端**完整模拟一家银行：核心账务（复式记账、存取转、利息、日终批量）、
+理财（产品募集、申赎、收益计提、到期清算）、小额信贷（在线申请、联网核查/征信 mock、自动审批放款、等额本息还款）、
+用户中心（客户/柜员/权限）、以及 **柜面** 与 **网上银行** 两个端到端业务渠道。
 全套系统通过 **Docker Compose 一键部署**，Nacos 作为注册中心与配置中心，PostgreSQL 存储，行业最佳实践的企业级工程结构。
 
 ## 服务清单
@@ -22,13 +23,14 @@ AirBank 用 **5 个 Spring Cloud 微服务 + 2 个 React 前端**完整模拟一
 | `airbank-gateway` | Spring Cloud Gateway 统一接入：鉴权、路由、限流 | 8080 |
 | `airbank-core` | **核心系统**：账户、存取款、转账、复式记账引擎、利息、日终批量 | 8081 |
 | `airbank-wealth` | **理财系统**：产品管理、申购/赎回、份额、收益计提、到期清算 | 8082 |
+| `airbank-loan` | **小额信贷**：贷款产品、在线申请、联网核查/征信（mock）、自动审批、放款、等额本息还款 | 8086 |
 | `airbank-uam` | **用户中心**：客户主数据、认证（JWT）、柜员/角色/权限、机构 | 8083 |
 | `airbank-counter` | **柜面系统**：柜员工作台后端、业务受理、复核授权、尾箱、日结 | 8084 |
 | `airbank-ebank` | **网上银行**：客户自助服务后端、转账、理财超市、回单、消息 | 8085 |
 | `airbank-counter-web` | 柜面工作台前端（React + Ant Design Pro 布局） | 8001 |
 | `airbank-ebank-web` | 网银门户前端（React + Ant Design） | 8002 |
 | `nacos` | 注册中心 + 配置中心 | 8848 |
-| `postgres` | PostgreSQL 16（database-per-service，5 个独立库） | 5432 |
+| `postgres` | PostgreSQL 16（database-per-service，6 个独立库） | 5432 |
 | `redis` | 验证码、幂等预检、分布式锁、缓存 | 6379 |
 | `zipkin` 等 | 链路追踪 / Prometheus / Grafana / Loki（可观测性 profile） | 9411/9090/3000/3100 |
 
@@ -39,9 +41,9 @@ flowchart LR
     CW["柜面工作台<br/>React+AntD"] --> GW["Gateway :8080"]
     EW["网银门户<br/>React+AntD"] --> GW
     GW --> CT["柜面系统"] & EB["网银系统"]
-    CT & EB -->|OpenFeign| UAM["用户中心"] & CORE["核心系统"] & WEA["理财系统"]
-    UAM & CORE & WEA & CT & EB -.-> NA["Nacos 注册/配置"]
-    UAM & CORE & WEA & CT & EB --> PG[("PostgreSQL")] & RD[("Redis")]
+    CT & EB -->|OpenFeign| UAM["用户中心"] & CORE["核心系统"] & WEA["理财系统"] & LN["信贷系统"]
+    UAM & CORE & WEA & LN & CT & EB -.-> NA["Nacos 注册/配置"]
+    UAM & CORE & WEA & LN & CT & EB --> PG[("PostgreSQL")] & RD[("Redis")]
 ```
 
 核心业务闭环示例（完整流程见设计文档）：
@@ -65,6 +67,7 @@ flowchart LR
 | 10 | [前端设计](docs/design/10-前端设计.md) | 工程结构、柜面工作台/网银门户信息架构与页面清单、关键交互、视觉规范 |
 | 11 | [测试与培训场景库](docs/design/11-测试与培训场景库.md) | 演示账号、14 个端到端场景（步骤/预期/校验点）、故障演练、造数与压测 |
 | 12 | [工程规范与实施计划](docs/design/12-工程规范与实施计划.md) | 仓库结构、Maven 模块、代码/分支/提交规范、测试策略、里程碑 |
+| 13 | [小额信贷系统设计](docs/design/13-小额信贷系统设计.md) | 贷款产品/申请/审批/放款/还款、联网核查与征信 mock、核心记账扩展、网银渠道集成 |
 
 > **实施追踪**：任务级的详细实施计划（M0~M7 工作分解、验收门、需求覆盖矩阵、双人并行方案）见
 > [docs/implementation-plan.md](docs/implementation-plan.md) —— 该文档是活的执行追踪器，任务完成即勾选。
